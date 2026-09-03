@@ -1,0 +1,36 @@
+name: Auto Trending News
+
+on:
+  schedule:
+    - cron: '0 */3 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-news:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install node-fetch
+
+      - name: Run News Bot Script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: node scripts/fetch-news.js
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "News Bot"
+          git config --global user.email "bot@github.com"
+          git add news.json
+          git commit -m "Auto-update AI news [skip ci]" || exit 0
+          git push
