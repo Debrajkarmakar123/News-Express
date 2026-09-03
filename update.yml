@@ -24,7 +24,7 @@ jobs:
 
       - name: Run News Bot Script
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY: AQ.Ab8RN6Iy1LPugtam4mh4dHAa0fpT_ryvMYmfkVkWfNVDZZVHKQ
         run: node scripts/fetch-news.js
 
       - name: Commit and Push Changes
