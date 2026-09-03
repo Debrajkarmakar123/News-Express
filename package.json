@@ -1,16 +1,9 @@
-<<<<<<< HEAD
 {
-  "name": "ai-news-portal",
+  "name": "news-express",
   "version": "1.0.0",
+  "description": "Auto AI News Portal",
+  "main": "index.html",
   "dependencies": {
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^2.6.7"
   }
-=======
-{
-  "name": "ai-news-portal",
-  "version": "1.0.0",
-  "dependencies": {
-    "node-fetch": "^3.3.2"
-  }
->>>>>>> 9eb62572ecd57f4bbe89737c44d1ca0c374ac70c
 }
