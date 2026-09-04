@@ -478,7 +478,7 @@ async function main() {
         new Date(b.pubDate).getTime() -
         new Date(a.pubDate).getTime()
     )
-    .slice(0, 20);
+    .slice(0, 10);
 
   console.log(`Candidates for AI generation: ${candidates.length}`);
 
