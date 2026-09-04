@@ -1,427 +1,470 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta charset="UTF-8">
+<title>News-Express Article</title>
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-  <title>News-Express</title>
+body {
+    font-family: Arial, sans-serif;
+    background: #f3f3f3;
+    color: #222;
+}
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+header {
+    background: white;
+    border-bottom: 3px solid #cc0000;
+}
 
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f6f8;
-      color: #171717;
-      line-height: 1.8;
-    }
+.header-container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px 15px;
+}
 
-    header {
-      background: #111827;
-      color: white;
-      padding: 20px;
-    }
+.logo {
+    color: #cc0000;
+    font-size: 30px;
+    font-weight: 900;
+}
 
-    .header-inner {
-      max-width: 900px;
-      margin: auto;
-    }
+nav {
+    background: #1a1a1a;
+}
 
-    .logo {
-      font-size: 27px;
-      font-weight: 800;
-    }
+.nav-container {
+    max-width: 900px;
+    margin: auto;
+    display: flex;
+}
 
-    .back {
-      display: inline-block;
-      margin-top: 8px;
-      color: #cbd5e1;
-      text-decoration: none;
-      font-size: 14px;
-    }
+.nav-container a {
+    color: white;
+    text-decoration: none;
+    padding: 13px 18px;
+}
 
-    main {
-      max-width: 900px;
-      margin: 35px auto;
-      padding: 0 18px;
-    }
+.article-container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 0 15px;
+}
 
+.article {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.08);
+}
+
+.category {
+    color: #cc0000;
+    font-weight: bold;
+    font-size: 13px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+h1 {
+    font-size: 38px;
+    line-height: 1.2;
+    margin-bottom: 15px;
+}
+
+.date {
+    color: #777;
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+.hero-image {
+    width: 100%;
+    max-height: 500px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 25px;
+}
+
+.summary {
+    font-size: 19px;
+    line-height: 1.7;
+    font-weight: 600;
+    margin-bottom: 25px;
+}
+
+.video-box {
+    margin: 25px 0;
+}
+
+.video-box video,
+.video-box iframe {
+    width: 100%;
+    min-height: 420px;
+    border: 0;
+    border-radius: 8px;
+}
+
+.key-points {
+    background: #f7f7f7;
+    padding: 20px;
+    margin: 25px 0;
+    border-left: 4px solid #cc0000;
+}
+
+.key-points h3 {
+    margin-bottom: 10px;
+}
+
+.key-points li {
+    margin: 8px 0 0 20px;
+}
+
+.article-body {
+    font-size: 18px;
+    line-height: 1.85;
+}
+
+.article-body h2 {
+    font-size: 25px;
+    margin: 30px 0 12px;
+    color: #111;
+}
+
+.tags {
+    margin-top: 30px;
+}
+
+.tag {
+    display: inline-block;
+    background: #eee;
+    padding: 6px 10px;
+    margin: 4px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+footer {
+    background: #1a1a1a;
+    color: #aaa;
+    text-align: center;
+    padding: 30px;
+    margin-top: 40px;
+}
+
+@media (max-width: 600px) {
     .article {
-      background: white;
-      padding: 35px;
-      border-radius: 16px;
-      box-shadow:
-        0 5px 25px rgba(0, 0, 0, 0.06);
-    }
-
-    .meta {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      color: #6b7280;
-      font-size: 14px;
-      margin-bottom: 18px;
-    }
-
-    .category {
-      color: #2563eb;
-      font-weight: bold;
+        padding: 20px;
     }
 
     h1 {
-      font-size: 40px;
-      line-height: 1.2;
-      margin-bottom: 20px;
-    }
-
-    .summary {
-      font-size: 19px;
-      color: #4b5563;
-      margin-bottom: 30px;
-      padding-bottom: 25px;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .key-points {
-      background: #f8fafc;
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 30px;
-    }
-
-    .key-points h2 {
-      font-size: 20px;
-      margin-bottom: 10px;
-    }
-
-    .key-points li {
-      margin-left: 20px;
-      margin-bottom: 6px;
+        font-size: 28px;
     }
 
     .article-body {
-      font-size: 18px;
-      color: #242424;
-      white-space: pre-line;
+        font-size: 16px;
     }
 
-    .article-body h2 {
-      font-size: 25px;
-      margin-top: 30px;
-      margin-bottom: 10px;
+    .video-box video,
+    .video-box iframe {
+        min-height: 230px;
     }
-
-    .tags {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 30px;
-      padding-top: 20px;
-      border-top: 1px solid #e5e7eb;
-    }
-
-    .tag {
-      background: #eef2ff;
-      color: #3730a3;
-      padding: 5px 10px;
-      border-radius: 999px;
-      font-size: 13px;
-    }
-
-    .error,
-    .loading {
-      background: white;
-      padding: 35px;
-      border-radius: 15px;
-      text-align: center;
-    }
-
-    footer {
-      text-align: center;
-      padding: 30px;
-      color: #6b7280;
-    }
-
-    @media (max-width: 650px) {
-
-      .article {
-        padding: 22px;
-      }
-
-      h1 {
-        font-size: 29px;
-      }
-
-      .summary {
-        font-size: 17px;
-      }
-
-      .article-body {
-        font-size: 17px;
-      }
-
-    }
-  </style>
-
+}
+</style>
 </head>
 
 <body>
 
 <header>
-  <div class="header-inner">
-
-    <div class="logo">
-      News-Express
+    <div class="header-container">
+        <div class="logo">NEWS-EXPRESS</div>
     </div>
-
-    <a
-      href="index.html"
-      class="back"
-    >
-      ← Back to Latest News
-    </a>
-
-  </div>
 </header>
 
-<main>
+<nav>
+    <div class="nav-container">
+        <a href="index.html">← Back to News</a>
+    </div>
+</nav>
 
-  <div
-    id="article-container"
-    class="loading"
-  >
-    Loading article...
-  </div>
+<div class="article-container">
 
-</main>
+    <article class="article" id="article">
+        Loading article...
+    </article>
+
+</div>
 
 <footer>
-  © 2026 News-Express
+    News-Express
 </footer>
 
 <script>
-
-  const container =
-    document.getElementById(
-      "article-container"
-    );
-
-  function escapeHTML(value = "") {
+function escapeHTML(value = "") {
     return String(value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
-  function formatDate(date) {
-
+function formatDate(date) {
     const d = new Date(date);
 
     if (Number.isNaN(d.getTime())) {
-      return "";
+        return "";
     }
 
-    return d.toLocaleDateString(
-      "en-IN",
-      {
-        day: "numeric",
-        month: "long",
-        year: "numeric"
-      }
-    );
-  }
+    return d.toLocaleString("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short"
+    });
+}
 
-  function formatArticle(text = "") {
+function formatArticle(text = "") {
+    const lines = text.split("\n");
 
-    const escaped =
-      escapeHTML(text);
+    let html = "";
 
-    return escaped
-      .replace(
-        /^## (.+)$/gm,
-        "<h2>$1</h2>"
-      );
-  }
+    for (const line of lines) {
 
-  const params =
-    new URLSearchParams(
-      window.location.search
-    );
+        const clean = escapeHTML(
+            line.trim()
+        );
 
-  const articleId =
-    params.get("id");
-
-  if (!articleId) {
-
-    container.innerHTML = `
-      <div class="error">
-        Article not found.
-      </div>
-    `;
-
-  } else {
-
-    fetch("news.json", {
-      cache: "no-store"
-    })
-      .then(response => {
-
-        if (!response.ok) {
-          throw new Error(
-            "Could not load news."
-          );
+        if (!clean) {
+            continue;
         }
 
-        return response.json();
-      })
+        if (clean.startsWith("## ")) {
+            html += `
+                <h2>
+                    ${clean.substring(3)}
+                </h2>
+            `;
+        } else {
+            html += `
+                <p>
+                    ${clean}
+                </p>
+            `;
+        }
+    }
 
-      .then(news => {
+    return html;
+}
 
-        const article =
-          news.find(
-            item =>
-              item.id === articleId
-          );
+function youtubeEmbed(url) {
+    try {
+        const u = new URL(url);
 
-        if (!article) {
+        let videoId = "";
 
-          container.innerHTML = `
-            <div class="error">
-              Article not found.
+        if (
+            u.hostname.includes("youtube.com")
+        ) {
+            videoId = u.searchParams.get("v") || "";
+        }
+
+        if (
+            u.hostname === "youtu.be"
+        ) {
+            videoId =
+                u.pathname.replace("/", "");
+        }
+
+        if (!videoId) {
+            return "";
+        }
+
+        return `
+            <div class="video-box">
+                <iframe
+                    src="https://www.youtube.com/embed/${encodeURIComponent(videoId)}"
+                    title="News video"
+                    allowfullscreen>
+                </iframe>
             </div>
-          `;
-
-          return;
-        }
-
-        const keyPoints =
-          Array.isArray(article.keyPoints)
-            ? article.keyPoints
-            : [];
-
-        const tags =
-          Array.isArray(article.tags)
-            ? article.tags
-            : [];
-
-        container.className =
-          "article";
-
-        container.innerHTML = `
-
-          <div class="meta">
-
-            <span class="category">
-              ${escapeHTML(
-                article.category || "News"
-              )}
-            </span>
-
-            <span>
-              ${formatDate(
-                article.publishedAt
-              )}
-            </span>
-
-          </div>
-
-          <h1>
-            ${escapeHTML(
-              article.headline
-            )}
-          </h1>
-
-          <p class="summary">
-            ${escapeHTML(
-              article.summary
-            )}
-          </p>
-
-          ${
-            keyPoints.length
-              ? `
-                <div class="key-points">
-
-                  <h2>
-                    Key Points
-                  </h2>
-
-                  <ul>
-                    ${keyPoints
-                      .map(
-                        point => `
-                          <li>
-                            ${escapeHTML(
-                              point
-                            )}
-                          </li>
-                        `
-                      )
-                      .join("")}
-                  </ul>
-
-                </div>
-              `
-              : ""
-          }
-
-          <div class="article-body">
-            ${formatArticle(
-              article.article
-            )}
-          </div>
-
-          ${
-            tags.length
-              ? `
-                <div class="tags">
-                  ${tags
-                    .map(
-                      tag => `
-                        <span class="tag">
-                          #${escapeHTML(tag)}
-                        </span>
-                      `
-                    )
-                    .join("")}
-                </div>
-              `
-              : ""
-          }
-
         `;
+    } catch {
+        return "";
+    }
+}
 
-        document.title =
-          `${article.headline} - News-Express`;
+const id =
+    new URLSearchParams(
+        window.location.search
+    ).get("id");
 
-      })
+if (!id) {
+    document.getElementById("article").innerHTML =
+        "<h1>Article not found</h1>";
+} else {
 
-      .catch(error => {
+    fetch("news.json")
+        .then(res => res.json())
+        .then(data => {
 
-        console.error(error);
+            const item = data.find(
+                news => String(news.id) === String(id)
+            );
 
-        container.innerHTML = `
-          <div class="error">
-            Unable to load this article.
-          </div>
-        `;
+            if (!item) {
+                document.getElementById(
+                    "article"
+                ).innerHTML =
+                    "<h1>Article not found</h1>";
 
-      });
+                return;
+            }
 
-  }
+            let imageHTML = "";
 
+            if (item.image) {
+                imageHTML = `
+                    <img
+                        class="hero-image"
+                        src="${escapeHTML(item.image)}"
+                        alt="${escapeHTML(item.headline || "News image")}"
+                    >
+                `;
+            }
+
+            let videoHTML = "";
+
+            if (item.video) {
+
+                if (
+                    /youtube\.com|youtu\.be/i
+                        .test(item.video)
+                ) {
+                    videoHTML =
+                        youtubeEmbed(item.video);
+                } else {
+
+                    videoHTML = `
+                        <div class="video-box">
+                            <video
+                                controls
+                                preload="metadata"
+                                src="${escapeHTML(item.video)}">
+                            </video>
+                        </div>
+                    `;
+                }
+            }
+
+            let keyPointsHTML = "";
+
+            if (
+                Array.isArray(item.keyPoints) &&
+                item.keyPoints.length
+            ) {
+
+                keyPointsHTML = `
+                    <div class="key-points">
+                        <h3>Key Points</h3>
+
+                        <ul>
+                            ${item.keyPoints
+                                .map(
+                                    point =>
+                                        `<li>${escapeHTML(point)}</li>`
+                                )
+                                .join("")}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            let tagsHTML = "";
+
+            if (
+                Array.isArray(item.tags) &&
+                item.tags.length
+            ) {
+
+                tagsHTML = `
+                    <div class="tags">
+                        ${item.tags
+                            .map(
+                                tag =>
+                                    `<span class="tag">#${escapeHTML(tag)}</span>`
+                            )
+                            .join("")}
+                    </div>
+                `;
+            }
+
+            document.title =
+                `${item.headline} - News-Express`;
+
+            document.getElementById(
+                "article"
+            ).innerHTML = `
+
+                <div class="category">
+                    ${escapeHTML(
+                        item.category || "News"
+                    )}
+                </div>
+
+                <h1>
+                    ${escapeHTML(
+                        item.headline ||
+                        item.originalTitle ||
+                        "Untitled"
+                    )}
+                </h1>
+
+                <div class="date">
+                    ${escapeHTML(
+                        formatDate(item.publishedAt)
+                    )}
+                </div>
+
+                ${imageHTML}
+
+                <div class="summary">
+                    ${escapeHTML(
+                        item.summary || ""
+                    )}
+                </div>
+
+                ${videoHTML}
+
+                ${keyPointsHTML}
+
+                <div class="article-body">
+                    ${formatArticle(
+                        item.article || ""
+                    )}
+                </div>
+
+                ${tagsHTML}
+            `;
+        })
+        .catch(error => {
+
+            console.error(error);
+
+            document.getElementById(
+                "article"
+            ).innerHTML =
+                "<h1>Article load nahi ho raha.</h1>";
+        });
+}
 </script>
 
 </body>
 </html>
+```
