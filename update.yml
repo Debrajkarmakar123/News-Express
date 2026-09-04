@@ -18,20 +18,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-
-      - name: Show Node version
+      - name: Check Node
         run: |
           node --version
           npm --version
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-package-lock
 
-      - name: Update news
+      - name: Update news with Gemini
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: npm run update-news
