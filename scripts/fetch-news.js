@@ -1,8 +1,11 @@
+```js
 import fs from "fs";
 import Parser from "rss-parser";
 import { GoogleGenAI } from "@google/genai";
 
-const parser = new Parser({ timeout: 20000 });
+const parser = new Parser({
+  timeout: 20000
+});
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
@@ -164,7 +167,11 @@ function absoluteUrl(value, baseUrl) {
   }
 }
 
-function extractMeta(html, property, baseUrl) {
+/*
+  URL meta fields:
+  Used only for image/video URLs.
+*/
+function extractMetaUrl(html, property, baseUrl) {
   const regex1 = new RegExp(
     `<meta[^>]+(?:property|name)=["']${property}["'][^>]+content=["']([^"']+)["'][^>]*>`,
     "i"
@@ -183,10 +190,36 @@ function extractMeta(html, property, baseUrl) {
     return "";
   }
 
-  return (
-    absoluteUrl(match[1].trim(), baseUrl) ||
-    cleanText(match[1])
+  return absoluteUrl(
+    match[1].trim(),
+    baseUrl
   );
+}
+
+/*
+  Normal text meta fields:
+  Do NOT convert descriptions into URLs.
+*/
+function extractMetaText(html, property) {
+  const regex1 = new RegExp(
+    `<meta[^>]+(?:property|name)=["']${property}["'][^>]+content=["']([^"']+)["'][^>]*>`,
+    "i"
+  );
+
+  const regex2 = new RegExp(
+    `<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${property}["'][^>]*>`,
+    "i"
+  );
+
+  const match =
+    html.match(regex1) ||
+    html.match(regex2);
+
+  if (!match) {
+    return "";
+  }
+
+  return cleanText(match[1]);
 }
 
 function extractPageText(html) {
@@ -226,9 +259,7 @@ async function fetchSourcePage(url) {
     });
 
     if (!response.ok) {
-      throw new Error(
-        `HTTP ${response.status}`
-      );
+      throw new Error(`HTTP ${response.status}`);
     }
 
     const finalUrl =
@@ -238,44 +269,42 @@ async function fetchSourcePage(url) {
       await response.text();
 
     const image =
-      extractMeta(
+      extractMetaUrl(
         html,
         "og:image",
         finalUrl
       ) ||
-      extractMeta(
+      extractMetaUrl(
         html,
         "twitter:image",
         finalUrl
       );
 
     const video =
-      extractMeta(
+      extractMetaUrl(
         html,
         "og:video",
         finalUrl
       ) ||
-      extractMeta(
+      extractMetaUrl(
         html,
         "og:video:url",
         finalUrl
       ) ||
-      extractMeta(
+      extractMetaUrl(
         html,
         "twitter:player:stream",
         finalUrl
       );
 
     const description =
-      extractMeta(
+      extractMetaText(
         html,
-        "og:description",
-        finalUrl
+        "og:description"
       ) ||
-      extractMeta(
+      extractMetaText(
         html,
-        "description",
-        finalUrl
+        "description"
       );
 
     const text =
@@ -288,6 +317,7 @@ async function fetchSourcePage(url) {
       description,
       text
     };
+
   } catch (error) {
     console.log(
       `Source page unavailable: ${error.message}`
@@ -400,6 +430,7 @@ async function fetchFeeds() {
           video: media.video
         });
       }
+
     } catch (error) {
       console.log(
         `Feed failed: ${feed.name} - ${error.message}`
@@ -421,9 +452,7 @@ function storyKey(title) {
     .join(" ");
 }
 
-function groupSimilarStories(
-  articles
-) {
+function groupSimilarStories(articles) {
   const groups = new Map();
 
   for (const article of articles) {
@@ -462,15 +491,12 @@ ${sourcePage.text || "Not available"}`
   const prompt = `
 You are the senior news writer for NEWS-EXPRESS.
 
-Your job is to create a COMPLETE, LONG-FORM NEWS ARTICLE.
+Create a complete original long-form news article from the verified material below.
 
-Generate the entire article from the verified factual material provided below.
-
-IMPORTANT:
-The final article must be ORIGINAL WRITING.
+The article must be ORIGINAL WRITING.
 Do not copy sentences or paragraphs from the source.
 
-GENERATE ALL SIX FIELDS:
+Generate these six fields:
 
 1. headline
 2. summary
@@ -480,31 +506,26 @@ GENERATE ALL SIX FIELDS:
 6. keyPoints
 
 HEADLINE:
-- Create a fresh headline.
-- Keep it factual.
-- Do not exaggerate.
-- Do not use clickbait.
+- Fresh and factual.
+- No clickbait.
+- No exaggeration.
 
 SUMMARY:
 - 3 to 4 complete sentences.
 - Clearly explain the main development.
 
 ARTICLE:
-- This is extremely important.
-- Generate a FULL LONG-FORM ARTICLE.
 - Target approximately ${TARGET_ARTICLE_WORDS} words.
-- Minimum acceptable length: ${MIN_ARTICLE_WORDS} words.
-- Maximum target: ${MAX_ARTICLE_WORDS} words.
-- NEVER intentionally return a short article.
+- Minimum ${MIN_ARTICLE_WORDS} words.
+- Maximum ${MAX_ARTICLE_WORDS} words.
 - Use multiple sections.
-- Every section heading must start with exactly:
-  ## 
+- Every section heading must begin with exactly:
+## 
+- Use normal paragraphs.
 - Explain what happened.
-- Explain the important details.
-- Add relevant background/context when the supplied material supports it.
-- Explain reactions or implications only when supported by the material.
-- Keep the writing natural and professional.
-- Use paragraphs, not one giant block.
+- Explain important details.
+- Include background/context only when supported by the supplied material.
+- Explain implications only when supported by the supplied material.
 
 FACTUAL RULES:
 - Do not invent facts.
@@ -515,7 +536,7 @@ FACTUAL RULES:
 - Do not invent quotes.
 - Do not invent statistics.
 - Do not invent causes.
-- Do not predict events without evidence.
+- Do not make unsupported predictions.
 - If information is unavailable, leave it out.
 - Never present guesses as facts.
 
@@ -523,11 +544,10 @@ ORIGINALITY:
 - Rewrite everything in your own words.
 - Do not copy source sentences.
 - Do not reproduce source paragraphs.
-- Synthesize the supplied information into an original article.
+- Synthesize the information.
 
 TAGS:
-- Generate 4 to 8 highly relevant short tags.
-- No generic irrelevant tags.
+- Generate 4 to 8 relevant short tags.
 
 KEY POINTS:
 - Generate 4 to 6 concise factual points.
@@ -543,10 +563,10 @@ Entertainment
 Science
 Other
 
-OUTPUT:
 Return ONLY valid JSON.
 
 VERIFIED SOURCE MATERIAL:
+
 ${sourceMaterial}
 `;
 
@@ -616,13 +636,9 @@ ${sourceMaterial}
       contents: prompt,
 
       config: {
-        responseMimeType:
-          "application/json",
-
+        responseMimeType: "application/json",
         responseSchema: schema,
-
         temperature: 0.7,
-
         maxOutputTokens: 9000
       }
     });
@@ -663,24 +679,95 @@ ${sourceMaterial}
     );
   }
 
-  if (
-    words >
-    MAX_ARTICLE_WORDS
-  ) {
-    const wordsArray =
+  if (words > MAX_ARTICLE_WORDS) {
+    const paragraphs =
       result.article
-        .split(/\s+/);
+        .split(/\n\s*\n/);
 
-    result.article =
-      wordsArray
-        .slice(
-          0,
-          MAX_ARTICLE_WORDS
-        )
-        .join(" ");
+    let output = "";
+    let count = 0;
+
+    for (const paragraph of paragraphs) {
+      const paragraphWords =
+        wordCount(paragraph);
+
+      if (
+        count + paragraphWords >
+        MAX_ARTICLE_WORDS
+      ) {
+        break;
+      }
+
+      output +=
+        (output ? "\n\n" : "") +
+        paragraph;
+
+      count += paragraphWords;
+    }
+
+    if (wordCount(output) >= MIN_ARTICLE_WORDS) {
+      result.article = output;
+    }
   }
 
   return result;
+}
+
+function createFallbackArticle(
+  story
+) {
+  const description =
+    story.description ||
+    "Latest news update available from the news feed.";
+
+  return {
+    id:
+      `${Date.now()}-` +
+      Math.random()
+        .toString(36)
+        .slice(2, 8),
+
+    headline: story.title,
+
+    originalTitle: story.title,
+
+    summary: description,
+
+    article:
+`## ${story.title}
+
+${description}
+
+## Latest Update
+
+This article is based on the latest information available in the news feed. More verified information will be added when it becomes available.`,
+
+    category: "Other",
+
+    tags: [],
+
+    keyPoints: [
+      description
+    ],
+
+    image: story.image || null,
+
+    video: story.video || null,
+
+    publishedAt:
+      story.publishedAt,
+
+    addedAt:
+      new Date().toISOString(),
+
+    editorialScore:
+      recencyScore(
+        story.publishedAt
+      ),
+
+    url:
+      normalizeUrl(story.url)
+  };
 }
 
 async function main() {
@@ -715,9 +802,7 @@ async function main() {
     new Map();
 
   for (const article of fetched) {
-    if (
-      !unique.has(article.url)
-    ) {
+    if (!unique.has(article.url)) {
       unique.set(
         article.url,
         article
@@ -731,8 +816,7 @@ async function main() {
         item =>
           hoursOld(
             item.publishedAt
-          ) <=
-          MAX_NEWS_AGE_HOURS
+          ) <= MAX_NEWS_AGE_HOURS
       )
       .filter(
         item =>
@@ -798,12 +882,6 @@ async function main() {
       continue;
     }
 
-    /*
-      Media priority:
-      1. Actual source article
-      2. RSS feed
-    */
-
     const image =
       sourcePage.image ||
       primary.image ||
@@ -816,7 +894,7 @@ async function main() {
 
     try {
       console.log(
-        "Generating title, summary, tags and FULL LONG ARTICLE with Gemini..."
+        "Generating article with Gemini..."
       );
 
       const generated =
@@ -883,16 +961,31 @@ async function main() {
         `Generated successfully: ${wordCount(generated.article)} words`
       );
 
+    } catch (error) {
       console.log(
-        `Image: ${image ? "YES" : "NO"}`
+        `Gemini generation failed: ${error.message}`
+      );
+
+      /*
+        IMPORTANT:
+        Even if Gemini fails, save the news item.
+        This prevents news.json from staying empty.
+      */
+
+      const fallback =
+        createFallbackArticle({
+          ...primary,
+          url: finalUrl,
+          image,
+          video
+        });
+
+      newArticles.push(
+        fallback
       );
 
       console.log(
-        `Video: ${video ? "YES" : "NO"}`
-      );
-    } catch (error) {
-      console.log(
-        `AI generation failed: ${error.message}`
+        "Fallback article saved."
       );
     }
   }
@@ -930,6 +1023,10 @@ async function main() {
   );
 
   console.log(
+    "news.json saved successfully."
+  );
+
+  console.log(
     "Done."
   );
 }
@@ -942,3 +1039,4 @@ main().catch(error => {
 
   process.exit(1);
 });
+```
