@@ -1,4 +1,4 @@
-```js
+
 import fs from "fs";
 import Parser from "rss-parser";
 import { GoogleGenAI } from "@google/genai";
@@ -155,30 +155,24 @@ function recencyScore(date) {
   return 10;
 }
 
-function absoluteUrl(value, baseUrl) {
-  if (!value) {
-    return "";
-  }
-
-  try {
-    return new URL(value, baseUrl).href;
-  } catch {
-    return "";
-  }
-}
-
 /*
-  URL meta fields:
-  Used only for image/video URLs.
+  Safely extract URL meta tags.
 */
 function extractMetaUrl(html, property, baseUrl) {
+  const escapedProperty =
+    property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
   const regex1 = new RegExp(
-    `<meta[^>]+(?:property|name)=["']${property}["'][^>]+content=["']([^"']+)["'][^>]*>`,
+    "<meta[^>]+(?:property|name)=[\"']" +
+      escapedProperty +
+      "[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>",
     "i"
   );
 
   const regex2 = new RegExp(
-    `<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${property}["'][^>]*>`,
+    "<meta[^>]+content=[\"']([^\"']+)[\"'][^>]+(?:property|name)=[\"']" +
+      escapedProperty +
+      "[\"'][^>]*>",
     "i"
   );
 
@@ -190,24 +184,34 @@ function extractMetaUrl(html, property, baseUrl) {
     return "";
   }
 
-  return absoluteUrl(
-    match[1].trim(),
-    baseUrl
-  );
+  try {
+    return new URL(
+      match[1].trim(),
+      baseUrl
+    ).href;
+  } catch {
+    return "";
+  }
 }
 
 /*
-  Normal text meta fields:
-  Do NOT convert descriptions into URLs.
+  Safely extract normal text meta tags.
 */
 function extractMetaText(html, property) {
+  const escapedProperty =
+    property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
   const regex1 = new RegExp(
-    `<meta[^>]+(?:property|name)=["']${property}["'][^>]+content=["']([^"']+)["'][^>]*>`,
+    "<meta[^>]+(?:property|name)=[\"']" +
+      escapedProperty +
+      "[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>",
     "i"
   );
 
   const regex2 = new RegExp(
-    `<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${property}["'][^>]*>`,
+    "<meta[^>]+content=[\"']([^\"']+)[\"'][^>]+(?:property|name)=[\"']" +
+      escapedProperty +
+      "[\"'][^>]*>",
     "i"
   );
 
@@ -223,7 +227,7 @@ function extractMetaText(html, property) {
 }
 
 function extractPageText(html) {
-  let body = html
+  const body = html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ");
@@ -259,7 +263,9 @@ async function fetchSourcePage(url) {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      throw new Error(
+        `HTTP ${response.status}`
+      );
     }
 
     const finalUrl =
@@ -681,8 +687,7 @@ ${sourceMaterial}
 
   if (words > MAX_ARTICLE_WORDS) {
     const paragraphs =
-      result.article
-        .split(/\n\s*\n/);
+      result.article.split(/\n\s*\n/);
 
     let output = "";
     let count = 0;
@@ -705,7 +710,10 @@ ${sourceMaterial}
       count += paragraphWords;
     }
 
-    if (wordCount(output) >= MIN_ARTICLE_WORDS) {
+    if (
+      wordCount(output) >=
+      MIN_ARTICLE_WORDS
+    ) {
       result.article = output;
     }
   }
@@ -727,11 +735,14 @@ function createFallbackArticle(
         .toString(36)
         .slice(2, 8),
 
-    headline: story.title,
+    headline:
+      story.title,
 
-    originalTitle: story.title,
+    originalTitle:
+      story.title,
 
-    summary: description,
+    summary:
+      description,
 
     article:
 `## ${story.title}
@@ -742,7 +753,8 @@ ${description}
 
 This article is based on the latest information available in the news feed. More verified information will be added when it becomes available.`,
 
-    category: "Other",
+    category:
+      "Other",
 
     tags: [],
 
@@ -750,9 +762,11 @@ This article is based on the latest information available in the news feed. More
       description
     ],
 
-    image: story.image || null,
+    image:
+      story.image || null,
 
-    video: story.video || null,
+    video:
+      story.video || null,
 
     publishedAt:
       story.publishedAt,
@@ -967,9 +981,8 @@ async function main() {
       );
 
       /*
-        IMPORTANT:
-        Even if Gemini fails, save the news item.
-        This prevents news.json from staying empty.
+        Gemini fail hone par bhi
+        news.json me item save hoga.
       */
 
       const fallback =
@@ -989,11 +1002,6 @@ async function main() {
       );
     }
   }
-
-  /*
-    Permanent archive:
-    New + Old
-  */
 
   const archive = [
     ...newArticles,
@@ -1039,4 +1047,4 @@ main().catch(error => {
 
   process.exit(1);
 });
-```
+
