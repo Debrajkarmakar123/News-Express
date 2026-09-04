@@ -1,39 +1,53 @@
-````js
 import fs from "fs";
+import path from "path";
 import Parser from "rss-parser";
 import { GoogleGenAI } from "@google/genai";
 
-const parser = new Parser({
-  timeout: 15000
-});
+const ROOT = process.cwd();
+const NEWS_FILE = path.join(ROOT, "news.json");
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+if (!GEMINI_API_KEY) {
+  throw new Error("GEMINI_API_KEY is missing.");
+}
 
 const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY
+  apiKey: GEMINI_API_KEY
 });
 
-const NEWS_FILE = "./news.json";
+const parser = new Parser({
+  timeout: 20000
+});
 
-// RSS feeds
+const MODEL = "gemini-2.5-flash-lite";
+
+const MAX_HOME_NEWS = 10;
+const MAX_CANDIDATES = 35;
+
+// News older than this will not be considered for new publishing.
+const MAX_NEWS_AGE_HOURS = 48;
+
 const FEEDS = [
   {
-    name: "Google News",
-    url: "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en"
+    category: "India",
+    url: "https://news.google.com/rss/search?q=India+when:2d&hl=en-IN&gl=IN&ceid=IN:en"
   },
   {
-    name: "Google News India",
-    url: "https://news.google.com/rss/search?q=India&hl=en-IN&gl=IN&ceid=IN:en"
+    category: "Technology",
+    url: "https://news.google.com/rss/search?q=Technology+when:2d&hl=en-IN&gl=IN&ceid=IN:en"
   },
   {
-    name: "Google News Technology",
-    url: "https://news.google.com/rss/search?q=technology&hl=en-IN&gl=IN&ceid=IN:en"
+    category: "Sports",
+    url: "https://news.google.com/rss/search?q=Sports+when:2d&hl=en-IN&gl=IN&ceid=IN:en"
   },
   {
-    name: "Google News Sports",
-    url: "https://news.google.com/rss/search?q=sports&hl=en-IN&gl=IN&ceid=IN:en"
+    category: "Entertainment",
+    url: "https://news.google.com/rss/search?q=Entertainment+when:2d&hl=en-IN&gl=IN&ceid=IN:en"
   },
   {
-    name: "Google News Entertainment",
-    url: "https://news.google.com/rss/search?q=entertainment&hl=en-IN&gl=IN&ceid=IN:en"
+    category: "India News",
+    url: "https://news.google.com/rss/search?q=India+News+when:2d&hl=en-IN&gl=IN&ceid=IN:en"
   }
 ];
 
@@ -46,7 +60,7 @@ function loadNews() {
     const data = JSON.parse(fs.readFileSync(NEWS_FILE, "utf8"));
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.log("Could not read news.json:", error.message);
+    console.error("Could not read news.json:", error.message);
     return [];
   }
 }
@@ -59,14 +73,28 @@ function saveNews(news) {
   );
 }
 
-function normalizeUrl(url) {
+function cleanText(text = "") {
+  return String(text)
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeTitle(title = "") {
+  return cleanText(title)
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeUrl(url = "") {
   try {
     const u = new URL(url);
 
     u.hash = "";
 
-    // Remove common tracking parameters
-    [
+    const removeParams = [
       "utm_source",
       "utm_medium",
       "utm_campaign",
@@ -74,198 +102,352 @@ function normalizeUrl(url) {
       "utm_content",
       "gclid",
       "fbclid"
-    ].forEach(param => {
+    ];
+
+    removeParams.forEach((param) => {
       u.searchParams.delete(param);
     });
 
-    return u.toString().replace(/\/$/, "");
+    return u.toString();
   } catch {
-    return String(url || "").trim();
+    return String(url).trim();
   }
 }
 
-function cleanText(text = "") {
-  return String(text)
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/\s+/g, " ")
-    .trim();
+function createId() {
+  return `${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2, 10)}`;
 }
 
-/*
-  Converts a headline into a URL-friendly slug.
-
-  Example:
-  "India Announces Major New Policy 2026!"
-  =>
-  "india-announces-major-new-policy-2026"
-*/
 function createSlug(text = "") {
-  let slug = cleanText(text)
+  return cleanText(text)
     .toLowerCase()
     .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/[^\p{L}\p{N}\s-]/gu, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-
-  if (!slug) {
-    slug = "news";
-  }
-
-  return slug.slice(0, 120).replace(/-$/, "");
+    .slice(0, 90);
 }
 
-function createUniqueSlug(text, usedSlugs) {
-  const base = createSlug(text);
-
-  let slug = base;
-  let counter = 2;
-
-  while (usedSlugs.has(slug)) {
-    slug = `${base}-${counter}`;
-    counter++;
-  }
-
-  usedSlugs.add(slug);
-
-  return slug;
-}
-
-/*
-  Old articles may not have a slug because they were created
-  before slug support was added.
-
-  This function gives those old articles stable slugs too.
-*/
-function migrateOldSlugs(news) {
-  const usedSlugs = new Set();
-
-  // First preserve already existing slugs
-  for (const article of news) {
-    if (article.slug) {
-      usedSlugs.add(article.slug);
-    }
-  }
-
-  // Then generate missing slugs
-  return news.map(article => {
-    if (article.slug) {
-      return article;
-    }
-
-    const sourceText =
-      article.headline ||
-      article.originalTitle ||
-      article.title ||
-      "news";
-
-    return {
-      ...article,
-      slug: createUniqueSlug(sourceText, usedSlugs)
-    };
-  });
-}
-
-function hoursOld(date) {
+function hoursAgo(date) {
   const time = new Date(date).getTime();
 
   if (!Number.isFinite(time)) {
-    return 9999;
+    return 999999;
   }
 
-  return Math.max(
+  return (Date.now() - time) / (1000 * 60 * 60);
+}
+
+function similarity(a, b) {
+  const wordsA = new Set(
+    normalizeTitle(a)
+      .split(" ")
+      .filter((word) => word.length > 3)
+  );
+
+  const wordsB = new Set(
+    normalizeTitle(b)
+      .split(" ")
+      .filter((word) => word.length > 3)
+  );
+
+  if (!wordsA.size || !wordsB.size) {
+    return 0;
+  }
+
+  let common = 0;
+
+  for (const word of wordsA) {
+    if (wordsB.has(word)) {
+      common++;
+    }
+  }
+
+  return common / Math.max(wordsA.size, wordsB.size);
+}
+
+function deduplicateArticles(items) {
+  const result = [];
+  const seenUrls = new Set();
+
+  for (const item of items) {
+    const normalizedUrl = normalizeUrl(item.url);
+
+    if (!normalizedUrl) {
+      continue;
+    }
+
+    if (seenUrls.has(normalizedUrl)) {
+      continue;
+    }
+
+    const duplicateTitle = result.find(
+      (existing) =>
+        similarity(existing.title, item.title) >= 0.72
+    );
+
+    if (duplicateTitle) {
+      continue;
+    }
+
+    seenUrls.add(normalizedUrl);
+
+    result.push({
+      ...item,
+      url: normalizedUrl
+    });
+  }
+
+  return result;
+}
+
+async function fetchFeed(feed) {
+  try {
+    console.log(`Fetching: ${feed.category}`);
+
+    const result = await parser.parseURL(feed.url);
+
+    return result.items.map((item) => ({
+      title: cleanText(item.title || ""),
+      description: cleanText(
+        item.contentSnippet ||
+        item.content ||
+        item.summary ||
+        ""
+      ),
+      url: normalizeUrl(item.link || ""),
+      publishedAt:
+        item.isoDate ||
+        item.pubDate ||
+        new Date().toISOString(),
+      feedCategory: feed.category
+    }));
+  } catch (error) {
+    console.error(
+      `Feed failed (${feed.category}):`,
+      error.message
+    );
+
+    return [];
+  }
+}
+
+async function getAllCandidates() {
+  const results = await Promise.all(
+    FEEDS.map(fetchFeed)
+  );
+
+  const all = results.flat();
+
+  const fresh = all.filter((article) => {
+    return (
+      article.title &&
+      article.url &&
+      hoursAgo(article.publishedAt) <= MAX_NEWS_AGE_HOURS
+    );
+  });
+
+  fresh.sort(
+    (a, b) =>
+      new Date(b.publishedAt) -
+      new Date(a.publishedAt)
+  );
+
+  return deduplicateArticles(fresh).slice(
     0,
-    (Date.now() - time) / (1000 * 60 * 60)
+    MAX_CANDIDATES
   );
 }
 
-function recencyScore(date) {
-  const hours = hoursOld(date);
+async function selectBestNews(candidates, oldNews) {
+  if (!candidates.length) {
+    return [];
+  }
 
-  if (hours <= 1) return 100;
-  if (hours <= 3) return 90;
-  if (hours <= 6) return 80;
-  if (hours <= 12) return 70;
-  if (hours <= 24) return 60;
-  if (hours <= 48) return 40;
-  if (hours <= 72) return 20;
+  const oldUrls = new Set(
+    oldNews.map((item) => normalizeUrl(item.url))
+  );
 
-  return 5;
-}
+  const newCandidates = candidates.filter(
+    (item) => !oldUrls.has(normalizeUrl(item.url))
+  );
 
-async function fetchFeeds() {
-  const articles = [];
+  if (!newCandidates.length) {
+    return [];
+  }
 
-  for (const feed of FEEDS) {
-    try {
-      console.log(`Fetching: ${feed.name}`);
+  const compactCandidates = newCandidates.map(
+    (item, index) => ({
+      index,
+      title: item.title,
+      description: item.description.slice(0, 500),
+      category: item.feedCategory,
+      publishedAt: item.publishedAt
+    })
+  );
 
-      const result = await parser.parseURL(feed.url);
-
-      for (const item of result.items || []) {
-        if (!item.link || !item.title) {
-          continue;
+  const schema = {
+    type: "object",
+    properties: {
+      selected: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            index: {
+              type: "integer"
+            },
+            score: {
+              type: "integer"
+            },
+            reason: {
+              type: "string"
+            }
+          },
+          required: [
+            "index",
+            "score",
+            "reason"
+          ]
         }
-
-        articles.push({
-          title: cleanText(item.title),
-          url: normalizeUrl(item.link),
-          source: feed.name,
-          publishedAt:
-            item.isoDate ||
-            item.pubDate ||
-            new Date().toISOString(),
-          description: cleanText(
-            item.contentSnippet ||
-            item.content ||
-            item.summary ||
-            ""
-          )
-        });
       }
-    } catch (error) {
-      console.log(
-        `Feed failed: ${feed.name}`,
-        error.message
-      );
-    }
-  }
+    },
+    required: ["selected"]
+  };
 
-  return articles;
-}
-
-function groupSimilarStories(articles) {
-  const groups = new Map();
-
-  for (const article of articles) {
-    const key = article.title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, "")
-      .replace(/\s+/g, " ")
-      .split(" ")
-      .slice(0, 8)
-      .join(" ");
-
-    if (!groups.has(key)) {
-      groups.set(key, []);
-    }
-
-    groups.get(key).push(article);
-  }
-
-  return groups;
-}
-
-async function aiAnalyze(article) {
   const prompt = `
-You are a professional news editor.
+You are the editorial selection system for a legitimate news website.
 
-Analyze the following news item.
+Select the most important and genuinely newsworthy stories from the candidate list.
+
+Rules:
+- Select at most ${MAX_HOME_NEWS} stories.
+- Prefer recent, significant, useful, widely relevant stories.
+- Prefer stories with enough factual information to write a detailed article.
+- Avoid duplicate or near-duplicate stories.
+- Do not select rumors, obvious clickbait, fabricated claims, or unsupported social-media claims.
+- Do not invent facts.
+- Do not select stories only because their title sounds sensational.
+- Score each selected story from 1 to 100.
+- Return ONLY valid JSON matching the requested schema.
+
+Candidates:
+${JSON.stringify(compactCandidates, null, 2)}
+`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: MODEL,
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: schema
+      }
+    });
+
+    const parsed = JSON.parse(response.text || "{}");
+
+    const selected = Array.isArray(parsed.selected)
+      ? parsed.selected
+      : [];
+
+    return selected
+      .filter(
+        (item) =>
+          Number.isInteger(item.index) &&
+          item.index >= 0 &&
+          item.index < newCandidates.length
+      )
+      .sort((a, b) => b.score - a.score)
+      .slice(0, MAX_HOME_NEWS)
+      .map((item) => ({
+        ...newCandidates[item.index],
+        editorialScore: item.score
+      }));
+  } catch (error) {
+    console.error(
+      "Gemini selection failed:",
+      error.message
+    );
+
+    // Safe fallback: use newest candidates.
+    return newCandidates
+      .slice(0, MAX_HOME_NEWS)
+      .map((item) => ({
+        ...item,
+        editorialScore: 50
+      }));
+  }
+}
+
+async function generateArticle(article) {
+  const schema = {
+    type: "object",
+    properties: {
+      headline: {
+        type: "string"
+      },
+      summary: {
+        type: "string"
+      },
+      article: {
+        type: "string"
+      },
+      category: {
+        type: "string"
+      },
+      tags: {
+        type: "array",
+        items: {
+          type: "string"
+        }
+      },
+      keyPoints: {
+        type: "array",
+        items: {
+          type: "string"
+        }
+      }
+    },
+    required: [
+      "headline",
+      "summary",
+      "article",
+      "category",
+      "tags",
+      "keyPoints"
+    ]
+  };
+
+  const prompt = `
+You are a professional digital news writer.
+
+Create a completely ORIGINAL and detailed news article using ONLY the factual information contained in the supplied news data.
+
+IMPORTANT RULES:
+
+1. Do NOT copy sentences or paragraphs from the source.
+2. Do NOT imitate the source article's wording.
+3. Write the article completely in your own words.
+4. Do NOT invent names, numbers, quotes, dates, locations, events, causes, reactions, or future developments.
+5. If a fact is not present in the supplied data, do not claim it as fact.
+6. Do not create fake quotations.
+7. Do not present speculation as confirmed information.
+8. The article should be informative and neutral.
+9. Target approximately 800–1200 words when the supplied facts support that much detail.
+10. If the available facts are insufficient, write a shorter article rather than filling space with invented information.
+11. Use clear section headings inside the article.
+12. Explain the event, its context, why it matters, and confirmed developments when supported by the supplied information.
+13. Avoid sensational clickbait.
+14. The headline must be original.
+15. The summary should be around 2–4 sentences.
+16. The article field should contain plain text with section headings separated by blank lines.
+17. Do not include HTML tags.
+18. Do not include the source name or source URL inside the article.
+
+News data:
 
 Title:
 ${article.title}
@@ -273,270 +455,201 @@ ${article.title}
 Description:
 ${article.description}
 
-Source:
-${article.source}
+Category:
+${article.feedCategory}
 
-Return ONLY valid JSON.
+Published time:
+${article.publishedAt}
 
-Required JSON format:
-{
-  "headline": "short accurate headline",
-  "summary": "2-3 sentence factual summary",
-  "category": "one of: India, World, Technology, Business, Sports, Entertainment, Science, Other",
-  "tags": ["tag1", "tag2", "tag3"],
-  "importance": 5
-}
-
-Rules:
-- Do not invent facts.
-- Do not add information that is not supported by the title or description.
-- Keep the summary factual.
-- importance must be an integer from 1 to 10.
-- headline must accurately represent the supplied news.
+Return only JSON matching the schema.
 `;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-lite",
+      model: MODEL,
       contents: prompt,
       config: {
-        responseMimeType: "application/json"
+        responseMimeType: "application/json",
+        responseSchema: schema
       }
     });
 
-    const text = response.text.trim();
+    const result = JSON.parse(response.text || "{}");
 
-    const cleaned = text
-      .replace(/^```json/i, "")
-      .replace(/^```/i, "")
-      .replace(/```$/i, "")
-      .trim();
+    if (
+      !result.headline ||
+      !result.summary ||
+      !result.article
+    ) {
+      throw new Error("Gemini returned incomplete article.");
+    }
 
-    const result = JSON.parse(cleaned);
-
-    return {
-      headline:
-        cleanText(result.headline) ||
-        article.title,
-
-      summary:
-        cleanText(result.summary) ||
-        article.description ||
-        article.title,
-
-      category:
-        cleanText(result.category) ||
-        "Other",
-
-      tags:
-        Array.isArray(result.tags)
-          ? result.tags
-              .map(tag => cleanText(tag))
-              .filter(Boolean)
-              .slice(0, 5)
-          : [],
-
-      importance:
-        Number.isInteger(result.importance)
-          ? Math.min(Math.max(result.importance, 1), 10)
-          : 5
-    };
+    return result;
   } catch (error) {
-    console.log(
-      "Gemini analysis failed:",
+    console.error(
+      `Article generation failed for "${article.title}":`,
       error.message
     );
 
-    // Safe fallback when AI fails
     return {
       headline: article.title,
       summary:
         article.description ||
-        article.title,
-      category: "Other",
+        "This news story is currently being updated.",
+      article:
+        article.description ||
+        "Detailed information is currently unavailable.",
+      category: article.feedCategory || "Other",
       tags: [],
-      importance: 5
+      keyPoints: []
     };
   }
 }
 
-function calculateTrendingScore({
-  article,
-  sourceCount,
-  importance
-}) {
-  const recent = recencyScore(article.publishedAt);
+function buildNewsObject(source, generated) {
+  const headline =
+    cleanText(generated.headline) ||
+    source.title;
 
-  const sourceScore = Math.min(
-    sourceCount * 10,
-    40
-  );
+  return {
+    id: createId(),
+    slug: `${createSlug(headline)}-${Date.now()
+      .toString()
+      .slice(-6)}`,
 
-  const importanceScore =
-    Math.min(importance, 10) * 5;
+    headline,
 
-  return Math.round(
-    recent +
-    sourceScore +
-    importanceScore
-  );
+    summary:
+      cleanText(generated.summary) ||
+      source.description,
+
+    article:
+      cleanText(generated.article) ||
+      source.description,
+
+    category:
+      cleanText(generated.category) ||
+      source.feedCategory ||
+      "Other",
+
+    tags: Array.isArray(generated.tags)
+      ? generated.tags
+          .map((tag) => cleanText(tag))
+          .filter(Boolean)
+          .slice(0, 8)
+      : [],
+
+    keyPoints: Array.isArray(generated.keyPoints)
+      ? generated.keyPoints
+          .map((point) => cleanText(point))
+          .filter(Boolean)
+          .slice(0, 6)
+      : [],
+
+    publishedAt: source.publishedAt,
+
+    addedAt: new Date().toISOString(),
+
+    editorialScore:
+      Number(source.editorialScore) || 50,
+
+    // Kept internally for duplicate checking.
+    // Frontend will NOT display it.
+    url: source.url
+  };
 }
 
 async function main() {
-  console.log("Starting News-Express updater...");
+  console.log("=================================");
+  console.log("       NEWS-EXPRESS UPDATE");
+  console.log("=================================");
 
-  let oldNews = loadNews();
+  const oldNews = loadNews();
 
   console.log(
     `Existing archive: ${oldNews.length} articles`
   );
 
-  // Add slugs to old articles that don't have one
-  oldNews = migrateOldSlugs(oldNews);
-
-  const fetched = await fetchFeeds();
+  const candidates = await getAllCandidates();
 
   console.log(
-    `Fetched: ${fetched.length} articles`
+    `Fresh candidates: ${candidates.length}`
   );
 
-  // Remove duplicate URLs from current fetch
-  const unique = new Map();
-
-  for (const article of fetched) {
-    if (!unique.has(article.url)) {
-      unique.set(article.url, article);
-    }
+  if (!candidates.length) {
+    console.log("No fresh candidates found.");
+    return;
   }
 
-  const articles = [...unique.values()];
-
-  console.log(
-    `Unique fetched articles: ${articles.length}`
+  const selected = await selectBestNews(
+    candidates,
+    oldNews
   );
 
-  // Group similar stories
-  const groups = groupSimilarStories(articles);
+  console.log(
+    `Selected for publication: ${selected.length}`
+  );
 
   const newArticles = [];
 
-  // Keep all existing slugs reserved
-  const usedSlugs = new Set(
-    oldNews
-      .map(item => item.slug)
-      .filter(Boolean)
-  );
-
-  for (const [, group] of groups) {
-    const primary = group[0];
-
-    // URL-based permanent duplicate check
-    const alreadyExists = oldNews.some(
-      item =>
-        normalizeUrl(item.url) ===
-        normalizeUrl(primary.url)
-    );
-
-    if (alreadyExists) {
-      continue;
-    }
-
+  for (const item of selected) {
     console.log(
-      `Analyzing: ${primary.title}`
+      `Generating article: ${item.title}`
     );
 
-    const aiResult = await aiAnalyze(primary);
+    const generated =
+      await generateArticle(item);
 
-    const sourceCount = group.length;
-
-    const trendingScore =
-      calculateTrendingScore({
-        article: primary,
-        sourceCount,
-        importance: aiResult.importance
-      });
-
-    /*
-      Slug is based on the final AI headline.
-      If two articles have the same headline,
-      -2, -3, etc. is automatically added.
-    */
-    const slug = createUniqueSlug(
-      aiResult.headline || primary.title,
-      usedSlugs
+    const finalArticle = buildNewsObject(
+      item,
+      generated
     );
 
-    newArticles.push({
-      id:
-        `${Date.now()}-` +
-        Math.random()
-          .toString(36)
-          .slice(2, 8),
+    newArticles.push(finalArticle);
 
-      slug,
-
-      headline: aiResult.headline,
-
-      originalTitle: primary.title,
-
-      summary: aiResult.summary,
-
-      category: aiResult.category,
-
-      tags: aiResult.tags,
-
-      source: primary.source,
-
-      sourceCount,
-
-      url: primary.url,
-
-      publishedAt: primary.publishedAt,
-
-      addedAt: new Date().toISOString(),
-
-      importance: aiResult.importance,
-
-      trendingScore,
-
-      trending:
-        trendingScore >= 100
-    });
+    // Small delay to reduce request bursts.
+    await new Promise((resolve) =>
+      setTimeout(resolve, 1500)
+    );
   }
 
-  // Permanent archive:
-  // NEW + OLD
   const archive = [
     ...newArticles,
     ...oldNews
   ];
 
-  // Latest published news first
-  archive.sort((a, b) => {
-    const dateA = new Date(a.publishedAt).getTime();
-    const dateB = new Date(b.publishedAt).getTime();
+  const uniqueArchive = [];
+  const seenUrls = new Set();
 
-    return (
-      (Number.isFinite(dateB) ? dateB : 0) -
-      (Number.isFinite(dateA) ? dateA : 0)
-    );
-  });
+  for (const item of archive) {
+    const url = normalizeUrl(item.url);
 
-  saveNews(archive);
+    if (url && !seenUrls.has(url)) {
+      seenUrls.add(url);
+      uniqueArchive.push(item);
+    }
+  }
+
+  uniqueArchive.sort(
+    (a, b) =>
+      new Date(b.publishedAt) -
+      new Date(a.publishedAt)
+  );
+
+  saveNews(uniqueArchive);
 
   console.log(
-    `Added ${newArticles.length} new articles`
+    `Added ${newArticles.length} new articles.`
   );
 
   console.log(
-    `Permanent archive now contains ${archive.length} articles`
+    `Total permanent archive: ${uniqueArchive.length}`
   );
 
-  console.log("Done.");
+  console.log("Update completed successfully.");
 }
 
-main().catch(error => {
-  console.error("Updater failed:", error);
+main().catch((error) => {
+  console.error("UPDATE FAILED:", error);
   process.exit(1);
 });
-````
