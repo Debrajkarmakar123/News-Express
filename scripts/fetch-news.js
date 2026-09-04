@@ -1,4 +1,4 @@
-```js
+````js
 import fs from "fs";
 import Parser from "rss-parser";
 import { GoogleGenAI } from "@google/genai";
@@ -12,14 +12,51 @@ const ai = new GoogleGenAI({
 const NEWS_FILE = "./news.json";
 
 const FEEDS = [
-  "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en",
-  "https://news.google.com/rss/search?q=India&hl=en-IN&gl=IN&ceid=IN:en",
-  "https://news.google.com/rss/search?q=technology&hl=en-IN&gl=IN&ceid=IN:en",
-  "https://news.google.com/rss/search?q=sports&hl=en-IN&gl=IN&ceid=IN:en",
-  "https://news.google.com/rss/search?q=entertainment&hl=en-IN&gl=IN&ceid=IN:en"
+  {
+    name: "Google News",
+    url: "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en"
+  },
+  {
+    name: "India News",
+    url: "https://news.google.com/rss/search?q=India&hl=en-IN&gl=IN&ceid=IN:en"
+  },
+  {
+    name: "Technology",
+    url: "https://news.google.com/rss/search?q=technology&hl=en-IN&gl=IN&ceid=IN:en"
+  },
+  {
+    name: "Sports",
+    url: "https://news.google.com/rss/search?q=sports&hl=en-IN&gl=IN&ceid=IN:en"
+  },
+  {
+    name: "Entertainment",
+    url: "https://news.google.com/rss/search?q=entertainment&hl=en-IN&gl=IN&ceid=IN:en"
+  }
 ];
 
-const MAX_AI_ARTICLES = 20;
+function loadNews() {
+  if (!fs.existsSync(NEWS_FILE)) {
+    return [];
+  }
+
+  try {
+    const data = JSON.parse(
+      fs.readFileSync(NEWS_FILE, "utf8")
+    );
+
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveNews(news) {
+  fs.writeFileSync(
+    NEWS_FILE,
+    JSON.stringify(news, null, 2),
+    "utf8"
+  );
+}
 
 function cleanText(text = "") {
   return text
@@ -34,46 +71,107 @@ function normalizeUrl(url = "") {
   try {
     const u = new URL(url);
     u.hash = "";
-    return u.toString();
+    return u.toString().replace(/\/$/, "");
   } catch {
     return url;
   }
 }
 
-function getCategory(title = "") {
-  const t = title.toLowerCase();
+function hoursOld(date) {
+  const time = new Date(date).getTime();
 
-  if (/sport|cricket|football|tennis|ipl|olympic/.test(t)) return "Sports";
-  if (/tech|ai|iphone|google|microsoft|software|computer|cyber/.test(t))
-    return "Technology";
-  if (/movie|film|actor|actress|bollywood|hollywood|music|entertainment/.test(t))
-    return "Entertainment";
+  if (!Number.isFinite(time)) {
+    return 9999;
+  }
 
-  return "India";
+  return Math.max(
+    0,
+    (Date.now() - time) / (1000 * 60 * 60)
+  );
 }
 
-function getRecencyScore(date) {
-  const published = new Date(date).getTime();
-
-  if (!published) return 20;
-
-  const hours = (Date.now() - published) / (1000 * 60 * 60);
+function recencyScore(date) {
+  const hours = hoursOld(date);
 
   if (hours <= 1) return 100;
   if (hours <= 3) return 90;
   if (hours <= 6) return 80;
-  if (hours <= 12) return 65;
-  if (hours <= 24) return 50;
-  if (hours <= 48) return 30;
+  if (hours <= 12) return 70;
+  if (hours <= 24) return 60;
+  if (hours <= 48) return 40;
+  if (hours <= 72) return 20;
 
-  return 10;
+  return 5;
 }
 
-async function analyzeWithGemini(article) {
-  const prompt = `
-You are an Indian news editor.
+async function fetchFeeds() {
+  const articles = [];
 
-Analyze this news item and return ONLY valid JSON.
+  for (const feed of FEEDS) {
+    try {
+      console.log(`Fetching: ${feed.name}`);
+
+      const result = await parser.parseURL(feed.url);
+
+      for (const item of result.items || []) {
+        if (!item.link || !item.title) {
+          continue;
+        }
+
+        articles.push({
+          title: cleanText(item.title),
+          url: normalizeUrl(item.link),
+          source: feed.name,
+          publishedAt:
+            item.isoDate ||
+            item.pubDate ||
+            new Date().toISOString(),
+          description: cleanText(
+            item.contentSnippet ||
+            item.content ||
+            item.summary ||
+            ""
+          )
+        });
+      }
+    } catch (error) {
+      console.log(
+        `Feed failed: ${feed.name}`,
+        error.message
+      );
+    }
+  }
+
+  return articles;
+}
+
+function groupSimilarStories(articles) {
+  const groups = new Map();
+
+  for (const article of articles) {
+    const key = article.title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, "")
+      .replace(/\s+/g, " ")
+      .split(" ")
+      .slice(0, 8)
+      .join(" ");
+
+    if (!groups.has(key)) {
+      groups.set(key, []);
+    }
+
+    groups.get(key).push(article);
+  }
+
+  return groups;
+}
+
+async function aiAnalyze(article) {
+  const prompt = `
+You are a professional Indian news editor.
+
+Analyze this news item.
 
 Title:
 ${article.title}
@@ -84,20 +182,26 @@ ${article.description}
 Source:
 ${article.source}
 
-Return exactly this structure:
+Return ONLY valid JSON.
+
+Use exactly this structure:
 
 {
-  "summary": "A short factual summary in 1-2 sentences.",
-  "importance": 1,
-  "category": "India"
+  "headline": "short accurate headline",
+  "summary": "2-3 sentence factual summary",
+  "category": "India",
+  "tags": ["tag1", "tag2", "tag3"],
+  "importance": 5
 }
+
+Category must be exactly one of:
+India, World, Technology, Business, Sports, Entertainment, Science, Other
 
 Rules:
 - Do not invent facts.
+- Do not add information that is not supported by the title or description.
+- Keep the summary factual.
 - importance must be an integer from 1 to 10.
-- category must be one of:
-  India, Technology, Sports, Entertainment
-- Keep the summary concise.
 `;
 
   try {
@@ -112,179 +216,229 @@ Rules:
     const text = response.text?.trim();
 
     if (!text) {
-      throw new Error("Gemini returned empty response");
+      throw new Error("Gemini returned an empty response");
     }
 
-    return JSON.parse(text);
+    const cleaned = text
+      .replace(/^```json/i, "")
+      .replace(/^```/i, "")
+      .replace(/```$/i, "")
+      .trim();
+
+    return JSON.parse(cleaned);
+
   } catch (error) {
-    console.log("Gemini error:", error.message);
+    console.log(
+      "Gemini analysis failed:",
+      error.message
+    );
 
     return {
-      summary: article.description || article.title,
-      importance: 5,
-      category: getCategory(article.title)
+      headline: article.title,
+      summary:
+        article.description ||
+        article.title,
+      category: "Other",
+      tags: [],
+      importance: 5
     };
   }
 }
 
-async function main() {
-  console.log("🚀 News Express update started...");
-
-  let oldNews = [];
-
-  if (fs.existsSync(NEWS_FILE)) {
-    try {
-      oldNews = JSON.parse(fs.readFileSync(NEWS_FILE, "utf8"));
-
-      if (!Array.isArray(oldNews)) {
-        oldNews = [];
-      }
-    } catch {
-      oldNews = [];
-    }
-  }
-
-  const oldUrls = new Set(
-    oldNews.map(item => normalizeUrl(item.url)).filter(Boolean)
+function calculateTrendingScore({
+  article,
+  sourceCount,
+  importance
+}) {
+  const recent = recencyScore(
+    article.publishedAt
   );
 
-  let allArticles = [];
+  const sourceScore = Math.min(
+    sourceCount * 10,
+    40
+  );
 
-  for (const feedUrl of FEEDS) {
-    try {
-      console.log("Reading:", feedUrl);
+  const importanceScore =
+    Math.min(
+      Number(importance) || 5,
+      10
+    ) * 5;
 
-      const feed = await parser.parseURL(feedUrl);
+  return Math.round(
+    recent +
+    sourceScore +
+    importanceScore
+  );
+}
 
-      for (const item of feed.items || []) {
-        const url = normalizeUrl(item.link);
+async function main() {
+  console.log(
+    "Starting News-Express updater..."
+  );
 
-        if (!url) continue;
-
-        allArticles.push({
-          title: cleanText(item.title || "Untitled"),
-          description: cleanText(
-            item.contentSnippet ||
-            item.content ||
-            item.summary ||
-            ""
-          ),
-          url,
-          source:
-            feed.title ||
-            item.creator ||
-            "News Source",
-          publishedAt:
-            item.isoDate ||
-            item.pubDate ||
-            new Date().toISOString()
-        });
-      }
-    } catch (error) {
-      console.log("Feed failed:", error.message);
-    }
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error(
+      "GEMINI_API_KEY is missing from GitHub Secrets."
+    );
   }
 
-  // Remove duplicate URLs
+  const oldNews = loadNews();
+
+  console.log(
+    `Existing archive: ${oldNews.length} articles`
+  );
+
+  const fetched = await fetchFeeds();
+
+  console.log(
+    `Fetched: ${fetched.length} articles`
+  );
+
   const unique = new Map();
 
-  for (const article of allArticles) {
+  for (const article of fetched) {
     if (!unique.has(article.url)) {
       unique.set(article.url, article);
     }
   }
 
-  allArticles = [...unique.values()];
+  const articles = [...unique.values()];
 
-  // Only process new articles
-  const newArticles = allArticles.filter(
-    article => !oldUrls.has(article.url)
+  const groups = groupSimilarStories(
+    articles
   );
 
-  console.log(`Found ${newArticles.length} new articles.`);
+  const newArticles = [];
 
-  // Newest first
-  newArticles.sort(
-    (a, b) =>
-      new Date(b.publishedAt).getTime() -
-      new Date(a.publishedAt).getTime()
-  );
+  for (const [, group] of groups) {
+    const primary = group[0];
 
-  const processed = [];
-
-  for (const article of newArticles.slice(0, MAX_AI_ARTICLES)) {
-    console.log("AI analyzing:", article.title);
-
-    const aiResult = await analyzeWithGemini(article);
-
-    const recencyScore = getRecencyScore(article.publishedAt);
-
-    const importanceScore =
-      Math.max(1, Math.min(10, Number(aiResult.importance) || 5)) * 10;
-
-    const trendingScore = Math.round(
-      recencyScore * 0.55 +
-      importanceScore * 0.45
+    const alreadyExists = oldNews.some(
+      item =>
+        normalizeUrl(item.url) ===
+        normalizeUrl(primary.url)
     );
 
-    processed.push({
-      id: Buffer.from(article.url).toString("base64").slice(0, 20),
-      title: article.title,
-      summary: aiResult.summary || article.description,
-      snippet: aiResult.summary || article.description,
-      category: aiResult.category || getCategory(article.title),
-      source: article.source,
-      url: article.url,
-      publishedAt: article.publishedAt,
-      date: new Date(article.publishedAt).toLocaleString("en-IN"),
-      trendingScore
+    if (alreadyExists) {
+      continue;
+    }
+
+    console.log(
+      `Analyzing: ${primary.title}`
+    );
+
+    const aiResult =
+      await aiAnalyze(primary);
+
+    const sourceCount = group.length;
+
+    const trendingScore =
+      calculateTrendingScore({
+        article: primary,
+        sourceCount,
+        importance: aiResult.importance
+      });
+
+    newArticles.push({
+      id:
+        `${Date.now()}-` +
+        Math.random()
+          .toString(36)
+          .slice(2, 8),
+
+      headline:
+        aiResult.headline ||
+        primary.title,
+
+      originalTitle:
+        primary.title,
+
+      summary:
+        aiResult.summary ||
+        primary.description ||
+        primary.title,
+
+      category:
+        aiResult.category ||
+        "Other",
+
+      tags:
+        Array.isArray(aiResult.tags)
+          ? aiResult.tags
+          : [],
+
+      source:
+        primary.source,
+
+      sourceCount,
+
+      url:
+        primary.url,
+
+      publishedAt:
+        primary.publishedAt,
+
+      addedAt:
+        new Date().toISOString(),
+
+      importance:
+        Number(aiResult.importance) || 5,
+
+      trendingScore,
+
+      trending:
+        trendingScore >= 100
     });
   }
 
-  // Keep old archive permanently
-  const archive = [...processed, ...oldNews];
+  const archive = [
+    ...newArticles,
+    ...oldNews
+  ];
 
-  // Final duplicate protection
   const finalMap = new Map();
 
   for (const article of archive) {
-    if (!article.url) continue;
-
     const url = normalizeUrl(article.url);
+
+    if (!url) {
+      continue;
+    }
 
     if (!finalMap.has(url)) {
       finalMap.set(url, article);
     }
   }
 
-  const finalNews = [...finalMap.values()];
+  const finalArchive =
+    [...finalMap.values()];
 
-  // Latest + trending first
-  finalNews.sort((a, b) => {
-    const scoreDifference =
-      (b.trendingScore || 0) - (a.trendingScore || 0);
-
-    if (scoreDifference !== 0) {
-      return scoreDifference;
-    }
-
-    return (
-      new Date(b.publishedAt || 0).getTime() -
-      new Date(a.publishedAt || 0).getTime()
-    );
-  });
-
-  fs.writeFileSync(
-    NEWS_FILE,
-    JSON.stringify(finalNews, null, 2),
-    "utf8"
+  finalArchive.sort(
+    (a, b) =>
+      new Date(b.publishedAt || 0) -
+      new Date(a.publishedAt || 0)
   );
 
-  console.log(`✅ Archive saved: ${finalNews.length} articles`);
+  saveNews(finalArchive);
+
+  console.log(
+    `Added ${newArticles.length} new articles`
+  );
+
+  console.log(
+    `Permanent archive now contains ${finalArchive.length} articles`
+  );
+
+  console.log("Done.");
 }
 
 main().catch(error => {
-  console.error("❌ Update failed:", error);
+  console.error(
+    "News update failed:",
+    error
+  );
+
   process.exit(1);
 });
-```
+````
