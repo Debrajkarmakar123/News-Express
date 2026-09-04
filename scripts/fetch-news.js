@@ -1,4 +1,4 @@
-```js
+
 import fs from "fs";
 import Parser from "rss-parser";
 import { GoogleGenAI } from "@google/genai";
@@ -676,4 +676,4 @@ main().catch(error => {
   console.error(error);
   process.exit(1);
 });
-```
+
