@@ -1115,7 +1115,7 @@ Refresh workflow every 10 seconds
 
 setInterval(
   checkWorkflow,
-  10000
+  60000
 );
 
 
