@@ -1,11 +1,7 @@
-
-import fs from "fs";
-import Parser from "rss-parser";
 import { GoogleGenAI } from "@google/genai";
-
-const parser = new Parser({
-  timeout: 20000
-});
+import Parser from "rss-parser";
+import fs from "fs";
+import path from "path";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
@@ -14,13 +10,14 @@ if (!GEMINI_API_KEY) {
 }
 
 const ai = new GoogleGenAI({
-  apiKey: GEMINI_API_KEY
+  apiKey: GEMINI_API_KEY,
 });
 
-const NEWS_FILE = "./news.json";
+const parser = new Parser({
+  timeout: 20000,
+});
 
-const MAX_CANDIDATES = 20;
-const MAX_NEWS_AGE_HOURS = 48;
+const ARCHIVE_FILE = path.join(process.cwd(), "news.json");
 
 const MIN_ARTICLE_WORDS = 700;
 const TARGET_ARTICLE_WORDS = 1100;
@@ -29,56 +26,118 @@ const MAX_ARTICLE_WORDS = 1500;
 const FEEDS = [
   {
     name: "Google News",
-    url: "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en"
+    url: "https://news.google.com/rss",
   },
   {
     name: "Google News India",
-    url: "https://news.google.com/rss/search?q=India&hl=en-IN&gl=IN&ceid=IN:en"
+    url: "https://news.google.com/rss/headlines/section/topic/NATION.en_in",
   },
   {
     name: "Google News Technology",
-    url: "https://news.google.com/rss/search?q=technology&hl=en-IN&gl=IN&ceid=IN:en"
+    url: "https://news.google.com/rss/headlines/section/topic/TECHNOLOGY.en_in",
   },
   {
     name: "Google News Sports",
-    url: "https://news.google.com/rss/search?q=sports&hl=en-IN&gl=IN&ceid=IN:en"
+    url: "https://news.google.com/rss/headlines/section/topic/SPORTS.en_in",
   },
   {
     name: "Google News Entertainment",
-    url: "https://news.google.com/rss/search?q=entertainment&hl=en-IN&gl=IN&ceid=IN:en"
-  }
+    url: "https://news.google.com/rss/headlines/section/topic/ENTERTAINMENT.en_in",
+  },
 ];
 
-function loadNews() {
-  if (!fs.existsSync(NEWS_FILE)) {
-    return [];
-  }
-
-  try {
-    const data = JSON.parse(
-      fs.readFileSync(NEWS_FILE, "utf8")
-    );
-
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function saveNews(news) {
-  fs.writeFileSync(
-    NEWS_FILE,
-    JSON.stringify(news, null, 2),
-    "utf8"
+function isRetryableGeminiError(error) {
+  const message = String(error?.message || error || "").toLowerCase();
+
+  return (
+    message.includes("503") ||
+    message.includes("unavailable") ||
+    message.includes("high demand") ||
+    message.includes("429") ||
+    message.includes("resource_exhausted") ||
+    message.includes("500") ||
+    message.includes("internal")
   );
 }
 
-function cleanText(text = "") {
-  return String(text)
+async function callGemini(prompt, schema) {
+  const maxAttempts = 6;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash-lite",
+        contents: prompt,
+        config: {
+          temperature: 0.7,
+          maxOutputTokens: 16000,
+          responseMimeType: "application/json",
+          responseSchema: schema,
+        },
+      });
+
+      return response;
+    } catch (error) {
+      if (!isRetryableGeminiError(error) || attempt === maxAttempts) {
+        throw error;
+      }
+
+      const baseDelay = Math.min(8000 * 2 ** (attempt - 1), 90000);
+      const jitter = Math.floor(Math.random() * 3000);
+      const delay = baseDelay + jitter;
+
+      console.log(
+        `Gemini temporary error. Retry ${attempt}/${maxAttempts - 1} in ${Math.round(
+          delay / 1000
+        )}s...`
+      );
+
+      await sleep(delay);
+    }
+  }
+}
+
+function parseGeminiJson(text) {
+  if (!text) {
+    throw new Error("Gemini returned empty response");
+  }
+
+  let cleaned = text.trim();
+
+  if (cleaned.startsWith("```")) {
+    cleaned = cleaned
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/\s*```$/i, "")
+      .trim();
+  }
+
+  return JSON.parse(cleaned);
+}
+
+function countWords(text) {
+  return String(text || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
+}
+
+function cleanText(text) {
+  return String(text || "")
+    .replace(/\r/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function stripHtml(html) {
+  return String(html || "")
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
-    .replace(/<[^>]*>/g, " ")
+    .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/gi, " ")
     .replace(/&amp;/gi, "&")
     .replace(/&quot;/gi, '"')
@@ -87,964 +146,412 @@ function cleanText(text = "") {
     .trim();
 }
 
-function cleanArticle(text = "") {
-  return String(text)
-    .replace(/\r/g, "")
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?<\/style>/gi, "")
-    .replace(/<[^>]*>/g, "")
-    .replace(/[ \t]+\n/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
-function wordCount(text = "") {
-  return cleanArticle(text)
-    .split(/\s+/)
-    .filter(Boolean)
-    .length;
-}
-
-function normalizeUrl(url = "") {
-  try {
-    const u = new URL(url);
-
-    u.hash = "";
-
-    [
-      "utm_source",
-      "utm_medium",
-      "utm_campaign",
-      "utm_term",
-      "utm_content",
-      "gclid",
-      "fbclid"
-    ].forEach(param => {
-      u.searchParams.delete(param);
-    });
-
-    return u.toString().replace(/\/$/, "");
-  } catch {
-    return url;
-  }
-}
-
-function hoursOld(date) {
-  const time = new Date(date).getTime();
-
-  if (!Number.isFinite(time)) {
-    return 9999;
-  }
-
-  return Math.max(
-    0,
-    (Date.now() - time) / 3600000
-  );
-}
-
-function recencyScore(date) {
-  const hours = hoursOld(date);
-
-  if (hours <= 1) return 100;
-  if (hours <= 3) return 90;
-  if (hours <= 6) return 80;
-  if (hours <= 12) return 70;
-  if (hours <= 24) return 60;
-  if (hours <= 48) return 40;
-
-  return 10;
-}
-
-/*
-  Safely extract URL meta tags.
-*/
-function extractMetaUrl(html, property, baseUrl) {
-  const escapedProperty =
-    property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-  const regex1 = new RegExp(
-    "<meta[^>]+(?:property|name)=[\"']" +
-      escapedProperty +
-      "[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>",
-    "i"
-  );
-
-  const regex2 = new RegExp(
-    "<meta[^>]+content=[\"']([^\"']+)[\"'][^>]+(?:property|name)=[\"']" +
-      escapedProperty +
-      "[\"'][^>]*>",
-    "i"
-  );
-
-  const match =
-    html.match(regex1) ||
-    html.match(regex2);
-
-  if (!match) {
-    return "";
-  }
+async function fetchFeed(feed) {
+  console.log(`Fetching: ${feed.name}`);
 
   try {
-    return new URL(
-      match[1].trim(),
-      baseUrl
-    ).href;
-  } catch {
-    return "";
+    const result = await parser.parseURL(feed.url);
+
+    return result.items.map((item) => ({
+      title: item.title || "",
+      link: item.link || "",
+      pubDate: item.pubDate || item.isoDate || new Date().toISOString(),
+      content: stripHtml(
+        item.contentSnippet ||
+          item.content ||
+          item.summary ||
+          item.description ||
+          ""
+      ),
+      source: feed.name,
+    }));
+  } catch (error) {
+    console.log(`Feed failed: ${feed.name}`);
+    console.log(error.message);
+    return [];
   }
-}
-
-/*
-  Safely extract normal text meta tags.
-*/
-function extractMetaText(html, property) {
-  const escapedProperty =
-    property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-  const regex1 = new RegExp(
-    "<meta[^>]+(?:property|name)=[\"']" +
-      escapedProperty +
-      "[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>",
-    "i"
-  );
-
-  const regex2 = new RegExp(
-    "<meta[^>]+content=[\"']([^\"']+)[\"'][^>]+(?:property|name)=[\"']" +
-      escapedProperty +
-      "[\"'][^>]*>",
-    "i"
-  );
-
-  const match =
-    html.match(regex1) ||
-    html.match(regex2);
-
-  if (!match) {
-    return "";
-  }
-
-  return cleanText(match[1]);
-}
-
-function extractPageText(html) {
-  const body = html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ");
-
-  const blocks = [
-    ...body.matchAll(
-      /<(?:article|main|p|h1|h2|h3|li)[^>]*>([\s\S]*?)<\/(?:article|main|p|h1|h2|h3|li)>/gi
-    )
-  ]
-    .map(match => cleanText(match[1]))
-    .filter(text => text.length >= 40);
-
-  const unique = [
-    ...new Set(blocks)
-  ];
-
-  return unique
-    .join("\n\n")
-    .slice(0, 35000);
 }
 
 async function fetchSourcePage(url) {
+  if (!url) return {};
+
   try {
     console.log("Fetching source page...");
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
 
     const response = await fetch(url, {
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (compatible; News-Express/1.0)"
+          "Mozilla/5.0 (compatible; News-Express/1.0; +https://github.com/)",
       },
-      redirect: "follow",
-      signal: AbortSignal.timeout(15000)
+      signal: controller.signal,
     });
 
+    clearTimeout(timeout);
+
     if (!response.ok) {
-      throw new Error(
-        `HTTP ${response.status}`
-      );
+      return {};
     }
 
-    const finalUrl =
-      response.url || url;
+    const html = await response.text();
 
-    const html =
-      await response.text();
+    const titleMatch = html.match(
+      /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i
+    );
 
-    const image =
-      extractMetaUrl(
-        html,
-        "og:image",
-        finalUrl
-      ) ||
-      extractMetaUrl(
-        html,
-        "twitter:image",
-        finalUrl
-      );
+    const descriptionMatch = html.match(
+      /<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i
+    );
 
-    const video =
-      extractMetaUrl(
-        html,
-        "og:video",
-        finalUrl
-      ) ||
-      extractMetaUrl(
-        html,
-        "og:video:url",
-        finalUrl
-      ) ||
-      extractMetaUrl(
-        html,
-        "twitter:player:stream",
-        finalUrl
-      );
+    const imageMatch = html.match(
+      /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i
+    );
 
-    const description =
-      extractMetaText(
-        html,
-        "og:description"
-      ) ||
-      extractMetaText(
-        html,
-        "description"
-      );
-
-    const text =
-      extractPageText(html);
-
-    return {
-      finalUrl,
-      image,
-      video,
-      description,
-      text
-    };
-
-  } catch (error) {
-    console.log(
-      `Source page unavailable: ${error.message}`
+    const videoMatch = html.match(
+      /<meta[^>]+property=["']og:video["'][^>]+content=["']([^"']+)["']/i
     );
 
     return {
-      finalUrl: url,
-      image: "",
-      video: "",
-      description: "",
-      text: ""
+      title: titleMatch?.[1] || "",
+      description: descriptionMatch?.[1] || "",
+      image: imageMatch?.[1] || "",
+      video: videoMatch?.[1] || "",
     };
+  } catch {
+    return {};
   }
 }
 
-function getFeedMedia(item) {
-  const imageCandidates = [
-    item.enclosure?.type?.startsWith?.("image/")
-      ? item.enclosure.url
-      : "",
+function makeFallbackArticle(item, sourceData) {
+  const description =
+    sourceData.description ||
+    item.content ||
+    "The latest report has drawn attention to this developing story.";
 
-    item["media:content"]?.url,
-    item["media:thumbnail"]?.url,
-    item.media?.content?.url,
-    item.media?.thumbnail?.url
-  ];
+  return `
+<h2>${item.title}</h2>
 
-  const image =
-    imageCandidates.find(
-      url =>
-        url &&
-        /^https?:\/\//i.test(url)
-    ) || "";
+<p>${description}</p>
 
-  const html = [
-    item.content,
-    item["content:encoded"],
-    item.summary,
-    item.description
-  ]
-    .filter(Boolean)
-    .join(" ");
+<p>This story is developing and further information may become available as officials, organisations and other reliable sources provide additional details.</p>
 
-  const youtube =
-    html.match(
-      /https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[^\s"'<>]+/i
-    );
-
-  const directVideo =
-    item.enclosure?.type?.startsWith?.("video/")
-      ? item.enclosure.url
-      : "";
-
-  const video =
-    youtube?.[0]
-      ?.replace(/[),.;]+$/, "") ||
-    directVideo ||
-    "";
-
-  return {
-    image,
-    video
-  };
+<p>News-Express will continue to follow the development and present important updates as they emerge.</p>
+`.trim();
 }
 
-async function fetchFeeds() {
-  const articles = [];
-
-  for (const feed of FEEDS) {
-    try {
-      console.log(
-        `Fetching: ${feed.name}`
-      );
-
-      const result =
-        await parser.parseURL(feed.url);
-
-      for (const item of result.items || []) {
-        if (!item.link || !item.title) {
-          continue;
-        }
-
-        const media =
-          getFeedMedia(item);
-
-        articles.push({
-          title: cleanText(item.title),
-
-          url: normalizeUrl(
-            item.link
-          ),
-
-          source: feed.name,
-
-          publishedAt:
-            item.isoDate ||
-            item.pubDate ||
-            new Date().toISOString(),
-
-          description:
-            cleanText(
-              item.contentSnippet ||
-              item.content ||
-              item.summary ||
-              ""
-            ),
-
-          image: media.image,
-
-          video: media.video
-        });
-      }
-
-    } catch (error) {
-      console.log(
-        `Feed failed: ${feed.name} - ${error.message}`
-      );
-    }
-  }
-
-  return articles;
-}
-
-function storyKey(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, "")
-    .replace(/\s+/g, " ")
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 10)
-    .join(" ");
-}
-
-function groupSimilarStories(articles) {
-  const groups = new Map();
-
-  for (const article of articles) {
-    const key =
-      storyKey(article.title);
-
-    if (!groups.has(key)) {
-      groups.set(key, []);
-    }
-
-    groups
-      .get(key)
-      .push(article);
-  }
-
-  return groups;
-}
-
-async function generateArticle(
-  story,
-  sourcePage
-) {
-  const sourceMaterial = [
-    `HEADLINE: ${story.title}`,
-
-    `RSS DESCRIPTION:
-${story.description || "Not available"}`,
-
-    `SOURCE PAGE DESCRIPTION:
-${sourcePage.description || "Not available"}`,
-
-    `SOURCE PAGE FACTUAL TEXT:
-${sourcePage.text || "Not available"}`
-  ].join("\n\n");
+async function generateArticle(item, sourceData) {
+  console.log("Generating article with Gemini...");
 
   const prompt = `
-You are the senior news writer for NEWS-EXPRESS.
+You are the senior news writer for News-Express.
 
-Create a complete original long-form news article from the verified material below.
+Write a completely ORIGINAL news article based ONLY on the factual information supplied below.
 
-The article must be ORIGINAL WRITING.
-Do not copy sentences or paragraphs from the source.
+IMPORTANT:
+- Do NOT copy sentences from the source.
+- Do NOT imitate the source's wording.
+- Rewrite everything naturally in your own words.
+- Do NOT invent facts, quotes, statistics, people, locations or events.
+- If a detail is uncertain, leave it out.
+- Keep the tone neutral, professional and easy to read.
+- Do not mention that AI was used.
+- Do not mention "source material".
+- Do not create fake quotes.
 
-Generate these six fields:
-
-1. headline
-2. summary
-3. article
-4. category
-5. tags
-6. keyPoints
+ARTICLE REQUIREMENTS:
+- Target length: 1000-1300 words.
+- Minimum acceptable length: 800 words.
+- Maximum length: 1500 words.
+- Use HTML.
+- Start with a strong introduction.
+- Use 6-10 useful <h2> sections.
+- Use normal <p> paragraphs.
+- Explain the important facts, context and significance.
+- Avoid repetitive sentences.
+- End with a concise conclusion.
+- Do not use markdown.
 
 HEADLINE:
-- Fresh and factual.
-- No clickbait.
-- No exaggeration.
+${item.title}
 
-SUMMARY:
-- 3 to 4 complete sentences.
-- Clearly explain the main development.
+RSS INFORMATION:
+${item.content}
 
-ARTICLE:
-- Target approximately ${TARGET_ARTICLE_WORDS} words.
-- Minimum ${MIN_ARTICLE_WORDS} words.
-- Maximum ${MAX_ARTICLE_WORDS} words.
-- Use multiple sections.
-- Every section heading must begin with exactly:
-## 
-- Use normal paragraphs.
-- Explain what happened.
-- Explain important details.
-- Include background/context only when supported by the supplied material.
-- Explain implications only when supported by the supplied material.
+SOURCE PAGE TITLE:
+${sourceData.title || ""}
 
-FACTUAL RULES:
-- Do not invent facts.
-- Do not invent people.
-- Do not invent dates.
-- Do not invent numbers.
-- Do not invent locations.
-- Do not invent quotes.
-- Do not invent statistics.
-- Do not invent causes.
-- Do not make unsupported predictions.
-- If information is unavailable, leave it out.
-- Never present guesses as facts.
+SOURCE PAGE DESCRIPTION:
+${sourceData.description || ""}
 
-ORIGINALITY:
-- Rewrite everything in your own words.
-- Do not copy source sentences.
-- Do not reproduce source paragraphs.
-- Synthesize the information.
+SOURCE IMAGE:
+${sourceData.image || ""}
 
-TAGS:
-- Generate 4 to 8 relevant short tags.
-
-KEY POINTS:
-- Generate 4 to 6 concise factual points.
-
-CATEGORY:
-Choose exactly one:
-India
-World
-Technology
-Business
-Sports
-Entertainment
-Science
-Other
-
-Return ONLY valid JSON.
-
-VERIFIED SOURCE MATERIAL:
-
-${sourceMaterial}
+SOURCE VIDEO:
+${sourceData.video || ""}
 `;
 
   const schema = {
     type: "object",
-
     properties: {
-      headline: {
-        type: "string"
-      },
-
-      summary: {
-        type: "string"
-      },
-
-      article: {
-        type: "string"
-      },
-
-      category: {
+      title: {
         type: "string",
-        enum: [
-          "India",
-          "World",
-          "Technology",
-          "Business",
-          "Sports",
-          "Entertainment",
-          "Science",
-          "Other"
-        ]
       },
-
-      tags: {
-        type: "array",
-        items: {
-          type: "string"
-        },
-        minItems: 4,
-        maxItems: 8
+      summary: {
+        type: "string",
       },
-
-      keyPoints: {
-        type: "array",
-        items: {
-          type: "string"
-        },
-        minItems: 4,
-        maxItems: 6
-      }
+      article: {
+        type: "string",
+      },
     },
-
-    required: [
-      "headline",
-      "summary",
-      "article",
-      "category",
-      "tags",
-      "keyPoints"
-    ]
+    required: ["title", "summary", "article"],
   };
 
-  const response =
-    await ai.models.generateContent({
-      model: "gemini-3.5-flash-lite",
+  const response = await callGemini(prompt, schema);
 
-      contents: prompt,
+  const text =
+    response?.text ||
+    response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+    "";
 
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: schema,
-        temperature: 0.7,
-        maxOutputTokens: 9000
-      }
+  const data = parseGeminiJson(text);
+
+  const wordCount = countWords(stripHtml(data.article));
+
+  console.log(`Gemini article length: ${wordCount} words`);
+
+  if (wordCount < 700) {
+    console.log("Article too short. Asking Gemini to expand...");
+
+    const expansionPrompt = `
+Expand the following news article into a complete, detailed article.
+
+Rules:
+- Keep every existing fact accurate.
+- Do not invent facts.
+- Do not repeat paragraphs.
+- Rewrite naturally.
+- Add useful context only when supported by the information already present.
+- Final article must be 900-1300 words.
+- Use HTML.
+- Use 6-10 <h2> sections.
+- Return ONLY JSON.
+
+Current article:
+
+${data.article}
+`;
+
+    const expansionResponse = await callGemini(expansionPrompt, {
+      type: "object",
+      properties: {
+        article: {
+          type: "string",
+        },
+      },
+      required: ["article"],
     });
 
-  if (!response.text) {
-    throw new Error(
-      "Gemini returned empty response"
-    );
-  }
+    const expansionText =
+      expansionResponse?.text ||
+      expansionResponse?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "";
 
-  let result;
+    const expanded = parseGeminiJson(expansionText);
 
-  try {
-    result = JSON.parse(
-      response.text.trim()
-    );
-  } catch {
-    throw new Error(
-      "Gemini returned invalid JSON"
-    );
-  }
+    const expandedWords = countWords(stripHtml(expanded.article));
 
-  result.article =
-    cleanArticle(
-      result.article
-    );
+    console.log(`Expanded article length: ${expandedWords} words`);
 
-  const words =
-    wordCount(result.article);
-
-  console.log(
-    `Gemini article length: ${words} words`
-  );
-
-  if (words < MIN_ARTICLE_WORDS) {
-    throw new Error(
-      `Article too short: ${words} words`
-    );
-  }
-
-  if (words > MAX_ARTICLE_WORDS) {
-    const paragraphs =
-      result.article.split(/\n\s*\n/);
-
-    let output = "";
-    let count = 0;
-
-    for (const paragraph of paragraphs) {
-      const paragraphWords =
-        wordCount(paragraph);
-
-      if (
-        count + paragraphWords >
-        MAX_ARTICLE_WORDS
-      ) {
-        break;
-      }
-
-      output +=
-        (output ? "\n\n" : "") +
-        paragraph;
-
-      count += paragraphWords;
-    }
-
-    if (
-      wordCount(output) >=
-      MIN_ARTICLE_WORDS
-    ) {
-      result.article = output;
+    if (expandedWords >= 700) {
+      data.article = expanded.article;
     }
   }
 
-  return result;
-}
+  const finalWords = countWords(stripHtml(data.article));
 
-function createFallbackArticle(
-  story
-) {
-  const description =
-    story.description ||
-    "Latest news update available from the news feed.";
+  if (finalWords < MIN_ARTICLE_WORDS) {
+    throw new Error(`Article too short: ${finalWords} words`);
+  }
+
+  if (finalWords > MAX_ARTICLE_WORDS) {
+    const words = stripHtml(data.article).split(/\s+/);
+
+    data.article = words.slice(0, MAX_ARTICLE_WORDS).join(" ");
+  }
 
   return {
-    id:
-      `${Date.now()}-` +
-      Math.random()
-        .toString(36)
-        .slice(2, 8),
-
-    headline:
-      story.title,
-
-    originalTitle:
-      story.title,
-
-    summary:
-      description,
-
-    article:
-`## ${story.title}
-
-${description}
-
-## Latest Update
-
-This article is based on the latest information available in the news feed. More verified information will be added when it becomes available.`,
-
-    category:
-      "Other",
-
-    tags: [],
-
-    keyPoints: [
-      description
-    ],
-
-    image:
-      story.image || null,
-
-    video:
-      story.video || null,
-
-    publishedAt:
-      story.publishedAt,
-
-    addedAt:
-      new Date().toISOString(),
-
-    editorialScore:
-      recencyScore(
-        story.publishedAt
-      ),
-
-    url:
-      normalizeUrl(story.url)
+    title: cleanText(data.title || item.title),
+    summary: cleanText(data.summary || item.content),
+    article: cleanText(data.article),
   };
+}
+
+function normalizeTitle(title) {
+  return String(title || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isDuplicate(item, archive) {
+  const normalized = normalizeTitle(item.title);
+
+  return archive.some((old) => {
+    const oldTitle = normalizeTitle(old.title);
+
+    if (!normalized || !oldTitle) return false;
+
+    if (normalized === oldTitle) return true;
+
+    const a = new Set(normalized.split(" "));
+    const b = new Set(oldTitle.split(" "));
+
+    const intersection = [...a].filter((word) => b.has(word)).length;
+    const similarity = intersection / Math.max(a.size, b.size);
+
+    return similarity >= 0.75;
+  });
+}
+
+function loadArchive() {
+  if (!fs.existsSync(ARCHIVE_FILE)) {
+    return [];
+  }
+
+  try {
+    const data = JSON.parse(fs.readFileSync(ARCHIVE_FILE, "utf8"));
+
+    return Array.isArray(data) ? data : [];
+  } catch {
+    console.log("Could not read existing news.json. Starting empty.");
+    return [];
+  }
+}
+
+function saveArchive(archive) {
+  fs.writeFileSync(
+    ARCHIVE_FILE,
+    JSON.stringify(archive, null, 2),
+    "utf8"
+  );
+
+  console.log("news.json saved successfully.");
 }
 
 async function main() {
-  console.log(
-    "Starting News-Express updater..."
-  );
+  console.log("Starting News-Express updater...");
 
-  const oldNews =
-    loadNews();
+  const archive = loadArchive();
 
-  const oldUrls =
-    new Set(
-      oldNews
-        .map(item =>
-          normalizeUrl(item.url)
-        )
-        .filter(Boolean)
-    );
+  console.log(`Existing archive: ${archive.length} articles`);
 
-  console.log(
-    `Existing archive: ${oldNews.length} articles`
-  );
+  let allItems = [];
 
-  const fetched =
-    await fetchFeeds();
-
-  console.log(
-    `Fetched: ${fetched.length} RSS items`
-  );
-
-  const unique =
-    new Map();
-
-  for (const article of fetched) {
-    if (!unique.has(article.url)) {
-      unique.set(
-        article.url,
-        article
-      );
-    }
+  for (const feed of FEEDS) {
+    const items = await fetchFeed(feed);
+    allItems.push(...items);
   }
 
-  const candidates =
-    [...unique.values()]
-      .filter(
-        item =>
-          hoursOld(
-            item.publishedAt
-          ) <= MAX_NEWS_AGE_HOURS
-      )
-      .filter(
-        item =>
-          !oldUrls.has(
-            item.url
-          )
-      )
-      .sort(
-        (a, b) =>
-          new Date(
-            b.publishedAt
-          ) -
-          new Date(
-            a.publishedAt
-          )
-      )
-      .slice(
-        0,
-        MAX_CANDIDATES
-      );
+  console.log(`Fetched: ${allItems.length} RSS items`);
 
-  console.log(
-    `Candidates for AI generation: ${candidates.length}`
-  );
+  const uniqueItems = [];
+  const seenTitles = new Set();
 
-  const groups =
-    groupSimilarStories(
-      candidates
-    );
+  for (const item of allItems) {
+    const normalized = normalizeTitle(item.title);
 
-  const newArticles = [];
+    if (!normalized) continue;
 
-  for (const [, group] of groups) {
-    const primary =
-      group[0];
+    if (seenTitles.has(normalized)) continue;
 
-    if (
-      oldUrls.has(
-        primary.url
-      )
-    ) {
-      continue;
-    }
+    seenTitles.add(normalized);
+    uniqueItems.push(item);
+  }
 
-    console.log(
-      `\nProcessing: ${primary.title}`
-    );
+  const candidates = uniqueItems
+    .filter((item) => !isDuplicate(item, archive))
+    .sort(
+      (a, b) =>
+        new Date(b.pubDate).getTime() -
+        new Date(a.pubDate).getTime()
+    )
+    .slice(0, 20);
 
-    const sourcePage =
-      await fetchSourcePage(
-        primary.url
-      );
+  console.log(`Candidates for AI generation: ${candidates.length}`);
 
-    const finalUrl =
-      normalizeUrl(
-        sourcePage.finalUrl ||
-        primary.url
-      );
+  let added = 0;
 
-    if (
-      oldUrls.has(finalUrl)
-    ) {
-      continue;
-    }
-
-    const image =
-      sourcePage.image ||
-      primary.image ||
-      null;
-
-    const video =
-      sourcePage.video ||
-      primary.video ||
-      null;
+  for (const item of candidates) {
+    console.log(`Processing: ${item.title}`);
 
     try {
-      console.log(
-        "Generating article with Gemini..."
-      );
+      const sourceData = await fetchSourcePage(item.link);
 
-      const generated =
-        await generateArticle(
-          primary,
-          sourcePage
-        );
+      let generated;
 
-      const score =
-        recencyScore(
-          primary.publishedAt
-        ) +
-        Math.min(
-          group.length * 10,
-          40
-        );
+      try {
+        generated = await generateArticle(item, sourceData);
+      } catch (error) {
+        console.log(`AI generation failed: ${error.message}`);
+        console.log("Saving fallback article.");
 
-      newArticles.push({
-        id:
-          `${Date.now()}-` +
-          Math.random()
-            .toString(36)
-            .slice(2, 8),
+        generated = {
+          title: item.title,
+          summary:
+            sourceData.description ||
+            item.content ||
+            "Latest news update.",
+          article: makeFallbackArticle(item, sourceData),
+        };
+      }
 
-        headline:
-          generated.headline,
+      const article = {
+        id: `${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2, 8)}`,
+        title: generated.title,
+        summary: generated.summary,
+        article: generated.article,
+        image:
+          sourceData.image ||
+          null,
+        video:
+          sourceData.video ||
+          null,
+        publishedAt: item.pubDate,
+        createdAt: new Date().toISOString(),
+        sourceUrl: item.link,
+        sourceName: item.source,
+      };
 
-        originalTitle:
-          primary.title,
+      archive.push(article);
+      added++;
 
-        summary:
-          generated.summary,
+      console.log("Article saved.");
 
-        article:
-          generated.article,
-
-        category:
-          generated.category,
-
-        tags:
-          generated.tags,
-
-        keyPoints:
-          generated.keyPoints,
-
-        image,
-
-        video,
-
-        publishedAt:
-          primary.publishedAt,
-
-        addedAt:
-          new Date().toISOString(),
-
-        editorialScore:
-          score,
-
-        url:
-          finalUrl
-      });
-
-      console.log(
-        `Generated successfully: ${wordCount(generated.article)} words`
-      );
-
+      await sleep(2500);
     } catch (error) {
-      console.log(
-        `Gemini generation failed: ${error.message}`
-      );
-
-      /*
-        Gemini fail hone par bhi
-        news.json me item save hoga.
-      */
-
-      const fallback =
-        createFallbackArticle({
-          ...primary,
-          url: finalUrl,
-          image,
-          video
-        });
-
-      newArticles.push(
-        fallback
-      );
-
-      console.log(
-        "Fallback article saved."
-      );
+      console.log(`Failed processing article: ${error.message}`);
     }
   }
-
-  const archive = [
-    ...newArticles,
-    ...oldNews
-  ];
 
   archive.sort(
     (a, b) =>
-      new Date(
-        b.publishedAt
-      ) -
-      new Date(
-        a.publishedAt
-      )
+      new Date(b.publishedAt || b.createdAt).getTime() -
+      new Date(a.publishedAt || a.createdAt).getTime()
   );
 
-  saveNews(
-    archive
-  );
+  saveArchive(archive);
 
-  console.log(
-    `\nAdded ${newArticles.length} new articles`
-  );
-
-  console.log(
-    `Permanent archive now contains ${archive.length} articles`
-  );
-
-  console.log(
-    "news.json saved successfully."
-  );
-
-  console.log(
-    "Done."
-  );
+  console.log(`Added ${added} new articles`);
+  console.log(`Permanent archive now contains ${archive.length} articles`);
+  console.log("Done.");
 }
 
-main().catch(error => {
-  console.error(
-    "Updater failed:",
-    error
-  );
-
+main().catch((error) => {
+  console.error("Fatal error:", error);
   process.exit(1);
 });
-
