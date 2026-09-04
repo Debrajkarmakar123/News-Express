@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,344 +8,430 @@
 
 <style>
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background: #f3f3f3;
-    color: #222;
+  font-family: Arial, sans-serif;
+  background: #f3f4f6;
+  color: #171717;
 }
 
-header {
-    background: #fff;
-    border-bottom: 3px solid #cc0000;
+.top {
+  background: #111;
+  color: #fff;
+  padding: 8px 5%;
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
 }
 
-.header-container {
-    max-width: 1100px;
-    margin: auto;
-    padding: 20px 15px;
+.live {
+  background: #d00;
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.header {
+  background: #fff;
+  border-bottom: 3px solid #d00;
+  padding: 20px 5%;
 }
 
 .logo {
-    font-size: 32px;
-    font-weight: 900;
-    color: #cc0000;
+  font-size: 34px;
+  font-weight: 900;
+  color: #d00;
 }
 
 .tagline {
-    color: #666;
-    font-size: 13px;
-    margin-top: 4px;
+  color: #666;
+  font-size: 12px;
+  margin-top: 4px;
 }
 
-nav {
-    background: #1a1a1a;
+.nav {
+  background: #171717;
+  overflow: auto;
+  white-space: nowrap;
 }
 
-.nav-container {
-    max-width: 1100px;
-    margin: auto;
-    display: flex;
-    overflow-x: auto;
+.nav a {
+  display: inline-block;
+  color: #fff;
+  text-decoration: none;
+  padding: 13px 18px;
 }
 
-.nav-container a {
-    color: white;
-    text-decoration: none;
-    padding: 13px 18px;
-    white-space: nowrap;
+.nav a:hover {
+  background: #333;
 }
 
-.nav-container a:hover {
-    background: #333;
+.layout {
+  max-width: 1150px;
+  margin: 25px auto;
+  padding: 0 15px;
+
+  display: grid;
+  grid-template-columns: 2.4fr 1fr;
+  gap: 25px;
 }
 
-.container {
-    max-width: 1100px;
-    margin: 25px auto;
-    padding: 0 15px;
+.section {
+  font-size: 22px;
+  font-weight: 800;
+
+  border-bottom: 3px solid #d00;
+
+  padding-bottom: 8px;
+  margin-bottom: 18px;
 }
 
-.section-header {
-    border-bottom: 2px solid #cc0000;
-    padding-bottom: 8px;
-    margin-bottom: 20px;
+.card {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 18px;
+
+  box-shadow:
+    0 2px 10px #0000000d;
 }
 
-.section-title {
-    font-size: 22px;
-    font-weight: bold;
+.card-img {
+  width: 100%;
+  height: 230px;
+  object-fit: cover;
+  background: #ddd;
+  display: block;
 }
 
-.news-card {
-    background: white;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+.card-body {
+  padding: 18px;
 }
 
-.news-image {
-    width: 100%;
-    height: 260px;
-    object-fit: cover;
-    display: block;
+.meta {
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 8px;
 }
 
-.news-content {
-    padding: 20px;
+.card h2 {
+  font-size: 22px;
+  line-height: 1.3;
+  margin-bottom: 10px;
 }
 
-.news-meta {
-    font-size: 12px;
-    color: #777;
-    margin-bottom: 8px;
+.card p {
+  color: #555;
+  line-height: 1.6;
 }
 
-.news-card h2 {
-    font-size: 22px;
-    line-height: 1.35;
-    margin-bottom: 10px;
+.read {
+  display: inline-block;
+  margin-top: 14px;
+
+  background: #d00;
+  color: #fff;
+
+  text-decoration: none;
+
+  padding: 9px 14px;
+  border-radius: 5px;
+
+  font-weight: 700;
 }
 
-.news-card p {
-    color: #555;
-    line-height: 1.7;
-    margin-bottom: 15px;
+.side {
+  background: #fff;
+  padding: 18px;
+  border-radius: 8px;
+  margin-bottom: 18px;
 }
 
-.read-more {
-    display: inline-block;
-    background: #cc0000;
-    color: white;
-    padding: 9px 15px;
-    border-radius: 5px;
-    text-decoration: none;
-    font-weight: bold;
+.side h3 {
+  margin-bottom: 12px;
 }
 
-.video-badge {
-    display: inline-block;
-    margin-left: 8px;
-    font-size: 12px;
-    background: #eee;
-    padding: 5px 8px;
-    border-radius: 4px;
+.side a {
+  display: block;
+
+  color: #222;
+  text-decoration: none;
+
+  padding: 10px 0;
+
+  border-bottom: 1px solid #eee;
 }
 
-.no-image {
-    height: 180px;
-    background: #ddd;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #777;
+.side a:hover {
+  color: #d00;
 }
 
-footer {
-    background: #1a1a1a;
-    color: #aaa;
-    text-align: center;
-    padding: 30px;
-    margin-top: 40px;
-}
+@media (max-width: 800px) {
 
-@media (max-width: 600px) {
-    .logo {
-        font-size: 27px;
-    }
+  .layout {
+    grid-template-columns: 1fr;
+  }
 
-    .news-image {
-        height: 210px;
-    }
+  .logo {
+    font-size: 28px;
+  }
 
-    .news-card h2 {
-        font-size: 19px;
-    }
+  .card-img {
+    height: 190px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<header>
-    <div class="header-container">
-        <div class="logo">NEWS-EXPRESS</div>
-        <div class="tagline">Latest News • Original AI Articles</div>
-    </div>
+<div class="top">
+  <span id="date"></span>
+  <span class="live">● LIVE UPDATES</span>
+</div>
+
+<header class="header">
+  <div class="logo">NEWS-EXPRESS</div>
+
+  <div class="tagline">
+    Fast • Original • Detailed News
+  </div>
 </header>
 
-<nav>
-    <div class="nav-container">
-        <a href="index.html">Home</a>
-        <a href="index.html?category=India">India</a>
-        <a href="index.html?category=Technology">Technology</a>
-        <a href="index.html?category=Sports">Sports</a>
-        <a href="index.html?category=Entertainment">Entertainment</a>
-    </div>
+<nav class="nav">
+  <a href="index.html">Home</a>
+  <a href="index.html?category=India">India</a>
+  <a href="index.html?category=Technology">Technology</a>
+  <a href="index.html?category=Sports">Sports</a>
+  <a href="index.html?category=Entertainment">Entertainment</a>
 </nav>
 
-<div class="container">
+<div class="layout">
 
-    <div class="section-header">
-        <div class="section-title">Latest News</div>
-    </div>
+<main>
 
-    <div id="news-list">
-        Loading news...
-    </div>
+<div class="section">
+  Latest News
+</div>
+
+<div id="news-list">
+  Loading news...
+</div>
+
+</main>
+
+<aside>
+
+<div class="side">
+
+<h3>🔥 Trending</h3>
+
+<div id="trending">
+  Loading...
+</div>
 
 </div>
 
-<footer>
-    <strong>News-Express</strong>
-    <br><br>
-    Latest news and original articles.
-</footer>
+<div class="side">
+
+<h3>News-Express</h3>
+
+<p>
+Fresh original articles are automatically updated from verified news feeds.
+</p>
+
+</div>
+
+</aside>
+
+</div>
 
 <script>
-function escapeHTML(value = "") {
-    return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
 
-function formatDate(date) {
-    const d = new Date(date);
+const esc = value =>
+  String(value ?? "")
+    .replace(
+      /[&<>'"]/g,
+      char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "'": "&#39;",
+        '"': "&quot;"
+      }[char])
+    );
 
-    if (Number.isNaN(d.getTime())) {
-        return "";
-    }
+const dateText = date => {
 
-    return d.toLocaleString("en-IN", {
+  if (!date) {
+    return "";
+  }
+
+  return new Date(date)
+    .toLocaleString(
+      "en-IN",
+      {
         dateStyle: "medium",
         timeStyle: "short"
-    });
-}
+      }
+    );
+};
 
-function getCategory() {
-    return new URLSearchParams(
-        window.location.search
+document.getElementById(
+  "date"
+).textContent =
+  new Date().toLocaleDateString(
+    "en-IN",
+    {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    }
+  );
+
+fetch(
+  "news.json",
+  {
+    cache: "no-store"
+  }
+)
+
+.then(response => {
+
+  if (!response.ok) {
+    throw new Error(
+      "news.json failed"
+    );
+  }
+
+  return response.json();
+})
+
+.then(data => {
+
+  const category =
+    new URLSearchParams(
+      location.search
     ).get("category");
-}
 
-fetch("news.json")
-    .then(res => {
-        if (!res.ok) {
-            throw new Error("news.json failed");
-        }
+  const filtered =
+    category
+      ? data.filter(
+          item =>
+            item.category ===
+            category
+        )
+      : data;
 
-        return res.json();
-    })
-    .then(data => {
+  const news =
+    filtered.slice(0, 10);
 
-        let news = Array.isArray(data)
-            ? data
-            : [];
+  document.getElementById(
+    "news-list"
+  ).innerHTML =
 
-        const category = getCategory();
+    news.length
 
-        if (category) {
-            news = news.filter(
-                item =>
-                    item.category === category
-            );
-        }
+      ? news.map(item => `
 
-        // Homepage: latest 10
-        news = news.slice(0, 10);
+<article class="card">
 
-        if (!news.length) {
-            document.getElementById("news-list").innerHTML =
-                "<p>No news available.</p>";
-            return;
-        }
+  ${
+    item.image
+      ? `
+      <img
+        class="card-img"
+        src="${esc(item.image)}"
+        alt="${esc(item.headline)}"
+        loading="lazy"
+        onerror="this.style.display='none'"
+      >
+      `
+      : ""
+  }
 
-        let html = "";
+  <div class="card-body">
 
-        news.forEach(item => {
+    <div class="meta">
 
-            const image = item.image
-                ? `
-                    <img
-                        class="news-image"
-                        src="${escapeHTML(item.image)}"
-                        alt="${escapeHTML(item.headline || "News image")}"
-                        loading="lazy"
-                    >
-                  `
-                : `
-                    <div class="no-image">
-                        No image available
-                    </div>
-                  `;
+      ${esc(
+        item.category ||
+        "News"
+      )}
 
-            const videoBadge = item.video
-                ? `<span class="video-badge">🎥 Video available</span>`
-                : "";
+      •
+      ${esc(
+        dateText(
+          item.publishedAt
+        )
+      )}
 
-            html += `
-                <article class="news-card">
+      ${
+        item.video
+          ? " • 🎥 Video"
+          : ""
+      }
 
-                    ${image}
+    </div>
 
-                    <div class="news-content">
+    <h2>
+      ${esc(item.headline)}
+    </h2>
 
-                        <div class="news-meta">
-                            ${escapeHTML(item.category || "News")}
-                            •
-                            ${escapeHTML(formatDate(item.publishedAt))}
-                            ${videoBadge}
-                        </div>
+    <p>
+      ${esc(item.summary)}
+    </p>
 
-                        <h2>
-                            ${escapeHTML(
-                                item.headline ||
-                                item.originalTitle ||
-                                "Untitled"
-                            )}
-                        </h2>
+    <a
+      class="read"
+      href="article.html?id=${encodeURIComponent(item.id)}"
+    >
+      Read Full Article →
+    </a>
 
-                        <p>
-                            ${escapeHTML(
-                                item.summary || ""
-                            )}
-                        </p>
+  </div>
 
-                        <a
-                            class="read-more"
-                            href="article.html?id=${encodeURIComponent(item.id)}"
-                        >
-                            Read Full Article →
-                        </a>
+</article>
 
-                    </div>
+`).join("")
 
-                </article>
-            `;
-        });
+      : "<p>No news available yet.</p>";
 
-        document.getElementById(
-            "news-list"
-        ).innerHTML = html;
-    })
-    .catch(error => {
-        console.error(error);
+  const trending =
+    data.slice(0, 5);
 
-        document.getElementById(
-            "news-list"
-        ).innerHTML =
-            "<p style='color:red'>News load nahi ho rahi.</p>";
-    });
+  document.getElementById(
+    "trending"
+  ).innerHTML =
+
+    trending
+      .map(item => `
+
+<a href="article.html?id=${encodeURIComponent(item.id)}">
+
+  ${esc(item.headline)}
+
+</a>
+
+`)
+      .join("");
+})
+
+.catch(() => {
+
+  document.getElementById(
+    "news-list"
+  ).textContent =
+    "News load nahi ho paayi.";
+
+});
+
 </script>
 
 </body>
 </html>
-```
