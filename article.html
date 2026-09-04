@@ -1,0 +1,743 @@
+```html
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Article - Khabar Express</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f4f4;
+            color: #111;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .topbar {
+            background: #111;
+            color: white;
+            padding: 8px 20px;
+            font-size: 13px;
+        }
+
+        .topbar-inner {
+            max-width: 1100px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .live span {
+            color: #c40000;
+        }
+
+        header {
+            background: white;
+            border-bottom: 4px solid #c40000;
+        }
+
+        .header-inner {
+            max-width: 1100px;
+            margin: auto;
+            padding: 22px 20px;
+        }
+
+        .logo {
+            font-family: Georgia, serif;
+            font-size: 40px;
+            font-weight: bold;
+            color: #c40000;
+        }
+
+        .tagline {
+            color: #666;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        nav {
+            background: #111;
+        }
+
+        .nav-inner {
+            max-width: 1100px;
+            margin: auto;
+            display: flex;
+            overflow-x: auto;
+        }
+
+        .nav-inner a {
+            color: white;
+            padding: 14px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .nav-inner a:hover {
+            background: #c40000;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .article {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 40px;
+        }
+
+        .back {
+            display: inline-block;
+            color: #c40000;
+            font-weight: bold;
+            margin-bottom: 28px;
+        }
+
+        .category {
+            display: inline-block;
+            color: #c40000;
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 44px;
+            line-height: 1.2;
+            margin-bottom: 18px;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            color: #666;
+            font-size: 13px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 18px;
+            margin-bottom: 25px;
+        }
+
+        .summary {
+            font-size: 19px;
+            line-height: 1.9;
+            color: #333;
+            white-space: pre-line;
+        }
+
+        .original-title {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f7f7f7;
+            border-left: 3px solid #c40000;
+            color: #555;
+            font-size: 13px;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 28px 0;
+        }
+
+        .tag {
+            background: #eee;
+            padding: 7px 11px;
+            font-size: 12px;
+            border-radius: 3px;
+        }
+
+        .source-box {
+            border-top: 2px solid #111;
+            margin-top: 30px;
+            padding-top: 20px;
+        }
+
+        .source-button {
+            display: inline-block;
+            background: #c40000;
+            color: white;
+            padding: 12px 18px;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        .source-button:hover {
+            background: #111;
+        }
+
+        .not-found {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .not-found h2 {
+            margin-bottom: 15px;
+        }
+
+        footer {
+            background: #111;
+            color: #aaa;
+            text-align: center;
+            padding: 30px;
+            margin-top: 40px;
+            font-size: 12px;
+        }
+
+        @media (max-width: 700px) {
+
+            .logo {
+                font-size: 31px;
+            }
+
+            .article {
+                padding: 22px;
+            }
+
+            h1 {
+                font-size: 30px;
+            }
+
+            .summary {
+                font-size: 17px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <div class="topbar">
+
+        <div class="topbar-inner">
+
+            <div id="date">
+                Loading...
+            </div>
+
+            <div class="live">
+                <span>●</span> LIVE NEWS
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <header>
+
+        <div class="header-inner">
+
+            <div class="logo">
+                Khabar Express
+            </div>
+
+            <div class="tagline">
+                Latest News • India • World • Technology • Sports
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <nav>
+
+        <div class="nav-inner">
+
+            <a href="index.html">
+                Home
+            </a>
+
+            <a href="index.html">
+                Taaza Khabar
+            </a>
+
+            <a href="index.html">
+                India
+            </a>
+
+            <a href="index.html">
+                World
+            </a>
+
+            <a href="index.html">
+                Sports
+            </a>
+
+            <a href="index.html">
+                Technology
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <div class="container">
+
+        <article class="article">
+
+            <a
+                href="index.html"
+                class="back"
+            >
+                ← Khabar Express par wapas
+            </a>
+
+
+            <div id="content">
+
+                Loading article...
+
+            </div>
+
+        </article>
+
+    </div>
+
+
+    <footer>
+
+        © 2026 Khabar Express.
+        All Rights Reserved.
+
+    </footer>
+
+
+    <script>
+
+
+        document.getElementById(
+            "date"
+        ).textContent =
+            new Date().toLocaleDateString(
+                "hi-IN",
+                {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric"
+                }
+            );
+
+
+        function escapeHTML(value) {
+
+            if (
+                value === null ||
+                value === undefined
+            ) {
+                return "";
+            }
+
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+
+        function getTitle(item) {
+
+            return (
+                item.headline ||
+                item.title ||
+                item.originalTitle ||
+                "Untitled News"
+            );
+        }
+
+
+        function getSummary(item) {
+
+            return (
+                item.summary ||
+                item.snippet ||
+                item.description ||
+                "Summary available nahi hai."
+            );
+        }
+
+
+        function getDate(item) {
+
+            const value =
+                item.publishedAt ||
+                item.date ||
+                item.published ||
+                item.pubDate ||
+                item.addedAt;
+
+            if (!value) {
+                return "";
+            }
+
+            const date =
+                new Date(value);
+
+            if (
+                isNaN(
+                    date.getTime()
+                )
+            ) {
+                return "";
+            }
+
+            return date.toLocaleString(
+                "hi-IN",
+                {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit"
+                }
+            );
+        }
+
+
+        function getSlugFromURL() {
+
+            const params =
+                new URLSearchParams(
+                    window.location.search
+                );
+
+            return (
+                params.get("slug") || ""
+            ).trim();
+        }
+
+
+        async function loadArticle() {
+
+            const content =
+                document.getElementById(
+                    "content"
+                );
+
+
+            const slug =
+                getSlugFromURL();
+
+
+            if (!slug) {
+
+                showNotFound();
+
+                return;
+            }
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "news.json?v=" +
+                        Date.now(),
+                        {
+                            cache: "no-store"
+                        }
+                    );
+
+
+                if (!response.ok) {
+                    throw new Error(
+                        "news.json unavailable"
+                    );
+                }
+
+
+                const data =
+                    await response.json();
+
+
+                if (
+                    !Array.isArray(data)
+                ) {
+                    throw new Error(
+                        "Invalid news data"
+                    );
+                }
+
+
+                /*
+                  Find exact permanent slug.
+                */
+                const item =
+                    data.find(
+                        article =>
+                            article.slug === slug
+                    );
+
+
+                if (!item) {
+
+                    showNotFound();
+
+                    return;
+                }
+
+
+                const title =
+                    getTitle(item);
+
+                const summary =
+                    getSummary(item);
+
+                const category =
+                    item.category ||
+                    "News";
+
+                const source =
+                    item.source ||
+                    "News Feed";
+
+                const date =
+                    getDate(item);
+
+
+                let tagsHTML = "";
+
+
+                if (
+                    Array.isArray(
+                        item.tags
+                    ) &&
+                    item.tags.length
+                ) {
+
+                    tagsHTML = `
+
+                        <div class="tags">
+
+                            ${item.tags
+                                .map(tag => `
+                                    <span class="tag">
+                                        #${escapeHTML(tag)}
+                                    </span>
+                                `)
+                                .join("")}
+
+                        </div>
+
+                    `;
+                }
+
+
+                let originalTitleHTML =
+                    "";
+
+
+                if (
+                    item.originalTitle &&
+                    item.originalTitle !== title
+                ) {
+
+                    originalTitleHTML = `
+
+                        <div class="original-title">
+
+                            <strong>
+                                Original headline:
+                            </strong>
+
+                            <br>
+
+                            ${escapeHTML(
+                                item.originalTitle
+                            )}
+
+                        </div>
+
+                    `;
+                }
+
+
+                let sourceButton =
+                    "";
+
+
+                if (item.url) {
+
+                    sourceButton = `
+
+                        <a
+                            class="source-button"
+                            href="${escapeHTML(
+                                item.url
+                            )}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Original Source पढ़ें →
+                        </a>
+
+                    `;
+                }
+
+
+                content.innerHTML = `
+
+                    <div class="category">
+                        ${escapeHTML(category)}
+                    </div>
+
+
+                    <h1>
+                        ${escapeHTML(title)}
+                    </h1>
+
+
+                    <div class="meta">
+
+                        <span>
+                            📰
+                            ${escapeHTML(source)}
+                        </span>
+
+                        <span>
+                            📅
+                            ${escapeHTML(date)}
+                        </span>
+
+                    </div>
+
+
+                    <div class="summary">
+                        ${escapeHTML(summary)}
+                    </div>
+
+
+                    ${originalTitleHTML}
+
+
+                    ${tagsHTML}
+
+
+                    <div class="source-box">
+
+                        <strong>
+                            Source
+                        </strong>
+
+                        <br>
+
+                        <span
+                            style="
+                                color:#666;
+                                font-size:13px;
+                            "
+                        >
+                            ${escapeHTML(source)}
+                        </span>
+
+                        <br>
+
+                        ${sourceButton}
+
+                    </div>
+
+                `;
+
+
+                document.title =
+                    title +
+                    " - Khabar Express";
+
+
+            } catch (error) {
+
+                console.error(
+                    "Article error:",
+                    error
+                );
+
+                showNotFound();
+
+            }
+
+        }
+
+
+        function showNotFound() {
+
+            document.getElementById(
+                "content"
+            ).innerHTML = `
+
+                <div class="not-found">
+
+                    <h2>
+                        Article nahi mila
+                    </h2>
+
+                    <p
+                        style="
+                            color:#666;
+                            margin-bottom:20px;
+                        "
+                    >
+                        Ye news available nahi hai
+                        ya URL galat hai.
+                    </p>
+
+                    <a
+                        href="index.html"
+                        style="
+                            color:#c40000;
+                            font-weight:bold;
+                        "
+                    >
+                        ← Latest News par wapas jao
+                    </a>
+
+                </div>
+
+            `;
+        }
+
+
+        loadArticle();
+
+    </script>
+
+</body>
+
+</html>
+```
