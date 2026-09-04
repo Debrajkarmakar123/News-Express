@@ -43,3 +43,5 @@ jobs:
             git commit -m "Update news archive"
             git push
           fi
+          - name: Install dependencies
+  run: npm install
