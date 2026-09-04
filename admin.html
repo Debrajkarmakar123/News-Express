@@ -1,159 +1,360 @@
-<!-- GitHub Actions Progress -->
-<div class="card">
-  <h2>⚙️ Workflow Progress</h2>
-
-  <div id="workflowStatus">Checking...</div>
-
-  <div class="progress-box">
-    <div id="workflowProgressBar" class="progress-bar"></div>
-  </div>
-
-  <div id="workflowProgressText">0%</div>
-
-  <div id="workflowSteps"></div>
-
-  <button onclick="refreshWorkflow()" class="btn">
-    🔄 Refresh
-  </button>
-
-  <a
-    id="githubActionsBtn"
-    href="#"
-    target="_blank"
-    class="btn"
-    style="display:none"
-  >
-    Open GitHub Actions
-  </a>
-</div>
-
 <script>
-const GITHUB_OWNER = location.hostname.split(".")[0];
-const GITHUB_REPO = location.pathname.split("/")[1];
+/* ================================
+   GITHUB ACTIONS CONFIG
+================================ */
+
+const GITHUB_OWNER = "YOUR_GITHUB_USERNAME";
+const GITHUB_REPO = "News-Express";
 const WORKFLOW_FILE = "update.yml";
 
-async function refreshWorkflow() {
-  const status = document.getElementById("workflowStatus");
-  const bar = document.getElementById("workflowProgressBar");
-  const text = document.getElementById("workflowProgressText");
-  const stepsBox = document.getElementById("workflowSteps");
-  const actionsBtn = document.getElementById("githubActionsBtn");
 
-  if (!GITHUB_OWNER || !GITHUB_REPO) {
-    status.textContent = "GitHub repository not detected";
-    return;
-  }
+/* ================================
+   WORKFLOW PROGRESS
+================================ */
+
+async function refreshWorkflow() {
+
+  const status =
+    document.getElementById("workflowStatus");
+
+  const bar =
+    document.getElementById("workflowProgressBar");
+
+  const text =
+    document.getElementById("workflowProgressText");
+
+  const stepsBox =
+    document.getElementById("workflowSteps");
+
+  const actionsBtn =
+    document.getElementById("githubActionsBtn");
+
+
+  status.textContent =
+    "🔄 Checking GitHub Actions...";
+
 
   try {
-    status.textContent = "Checking GitHub Actions...";
+
+    /* Get latest workflow run */
 
     const runsURL =
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}` +
       `/actions/workflows/${WORKFLOW_FILE}/runs?per_page=1`;
 
-    const response = await fetch(runsURL);
+
+    const response =
+      await fetch(runsURL, {
+        headers: {
+          "Accept":
+            "application/vnd.github+json"
+        }
+      });
+
 
     if (!response.ok) {
-      throw new Error("GitHub API error");
+
+      const errorText =
+        await response.text();
+
+      throw new Error(
+        `GitHub API ${response.status}: ${errorText}`
+      );
     }
 
-    const data = await response.json();
 
-    if (!data.workflow_runs || data.workflow_runs.length === 0) {
-      status.textContent = "No workflow runs found";
+    const data =
+      await response.json();
+
+
+    if (
+      !data.workflow_runs ||
+      data.workflow_runs.length === 0
+    ) {
+
+      status.textContent =
+        "ℹ️ No workflow runs found";
+
+      bar.style.width = "0%";
+      text.textContent = "0%";
+
+      stepsBox.innerHTML = "";
+
       return;
     }
 
-    const run = data.workflow_runs[0];
 
-    actionsBtn.href = run.html_url;
-    actionsBtn.style.display = "inline-block";
+    const run =
+      data.workflow_runs[0];
+
+
+    /* GitHub Actions button */
+
+    actionsBtn.href =
+      run.html_url;
+
+    actionsBtn.style.display =
+      "inline-block";
+
+
+    /* ================================
+       GET JOBS
+    ================================= */
 
     const jobsURL =
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}` +
       `/actions/runs/${run.id}/jobs?per_page=20`;
 
-    const jobsResponse = await fetch(jobsURL);
-    const jobsData = await jobsResponse.json();
+
+    const jobsResponse =
+      await fetch(jobsURL, {
+        headers: {
+          "Accept":
+            "application/vnd.github+json"
+        }
+      });
+
+
+    if (!jobsResponse.ok) {
+
+      const errorText =
+        await jobsResponse.text();
+
+      throw new Error(
+        `Jobs API ${jobsResponse.status}: ${errorText}`
+      );
+    }
+
+
+    const jobsData =
+      await jobsResponse.json();
+
 
     let steps = [];
 
+
     if (jobsData.jobs) {
+
       jobsData.jobs.forEach(job => {
+
         if (job.steps) {
-          steps = steps.concat(job.steps);
+
+          steps.push(
+            ...job.steps
+          );
+
         }
+
       });
+
     }
 
-    const completed = steps.filter(
-      step =>
-        step.status === "completed"
-    ).length;
 
-    const total = steps.length;
+    /* ================================
+       CALCULATE PROGRESS
+    ================================= */
 
     let progress = 0;
 
-    if (total > 0) {
-      progress = Math.round((completed / total) * 100);
+
+    if (steps.length > 0) {
+
+      const completed =
+        steps.filter(
+          step =>
+            step.status === "completed"
+        ).length;
+
+
+      progress =
+        Math.round(
+          (completed / steps.length) * 100
+        );
+
     }
 
-    if (run.status === "completed") {
+
+    if (
+      run.status === "completed"
+    ) {
+
       progress = 100;
+
     }
 
-    bar.style.width = progress + "%";
-    text.textContent = progress + "%";
 
-    if (run.status === "completed") {
-      status.textContent =
+    bar.style.width =
+      progress + "%";
+
+    text.textContent =
+      progress + "%";
+
+
+    /* ================================
+       STATUS
+    ================================= */
+
+    if (
+      run.status === "completed"
+    ) {
+
+      if (
         run.conclusion === "success"
-          ? "✅ Workflow completed successfully"
-          : "❌ Workflow failed";
-    } else if (run.status === "in_progress") {
-      status.textContent = "🔄 Workflow running...";
+      ) {
+
+        status.textContent =
+          "✅ Workflow completed successfully";
+
+      } else {
+
+        status.textContent =
+          "❌ Workflow failed";
+
+      }
+
+    } else if (
+      run.status === "in_progress"
+    ) {
+
+      status.textContent =
+        "🔄 Workflow running...";
+
+    } else if (
+      run.status === "queued"
+    ) {
+
+      status.textContent =
+        "⏳ Workflow queued...";
+
     } else {
-      status.textContent = "⏳ Workflow queued...";
+
+      status.textContent =
+        "ℹ️ Workflow: " +
+        run.status;
+
     }
+
+
+    /* ================================
+       SHOW STEPS
+    ================================= */
 
     stepsBox.innerHTML = "";
 
+
     steps.forEach(step => {
+
       let icon = "⏳";
 
-      if (step.status === "completed") {
-        icon =
+
+      if (
+        step.status === "completed"
+      ) {
+
+        if (
           step.conclusion === "success"
-            ? "✅"
-            : "❌";
-      } else if (step.status === "in_progress") {
+        ) {
+
+          icon = "✅";
+
+        } else {
+
+          icon = "❌";
+
+        }
+
+      } else if (
+        step.status === "in_progress"
+      ) {
+
         icon = "🔄";
+
       }
 
-      const div = document.createElement("div");
 
-      div.style.padding = "8px";
-      div.style.marginTop = "5px";
-      div.style.borderRadius = "8px";
-      div.style.background = "#f3f4f6";
+      const div =
+        document.createElement("div");
 
-      div.innerHTML =
-        `${icon} <b>${step.name}</b>` +
-        `<br><small>${step.status || ""}</small>`;
+
+      div.style.padding =
+        "10px";
+
+      div.style.marginTop =
+        "6px";
+
+      div.style.borderRadius =
+        "8px";
+
+      div.style.background =
+        "#f3f4f6";
+
+
+      div.innerHTML = `
+        ${icon}
+        <b>${escapeHTML(step.name)}</b>
+        <br>
+        <small>
+          ${escapeHTML(step.status || "")}
+        </small>
+      `;
+
 
       stepsBox.appendChild(div);
+
     });
 
-  } catch (error) {
-    console.error(error);
 
-    status.textContent =
-      "⚠️ Unable to read GitHub Actions";
+  } catch (error) {
+
+    console.error(
+      "GitHub Actions Error:",
+      error
+    );
+
+
+    status.innerHTML =
+      `⚠️ Unable to read GitHub Actions
+       <br>
+       <small style="color:#b91c1c">
+       ${escapeHTML(error.message)}
+       </small>`;
+
+
+    bar.style.width =
+      "0%";
+
+    text.textContent =
+      "0%";
+
   }
+
 }
 
+
+/* ================================
+   SAFE HTML
+================================ */
+
+function escapeHTML(value) {
+
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+}
+
+
+/* ================================
+   START
+================================ */
+
 refreshWorkflow();
+
+
+/* Refresh every 10 seconds */
 
 setInterval(
   refreshWorkflow,
