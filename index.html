@@ -1,0 +1,338 @@
+<<<<<<< HEAD
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khabar Express - Live News Portal</title>
+    <style>
+        :root {
+            --primary-color: #cc0000;
+            --secondary-color: #1a1a1a;
+            --bg-color: #f3f3f3;
+            --card-bg: #ffffff;
+            --text-main: #222222;
+            --text-muted: #555555;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.5; }
+
+        /* Top Bar */
+        .top-bar { background: var(--secondary-color); color: #fff; font-size: 12px; padding: 6px 15px; display: flex; justify-content: space-between; align-items: center; }
+        .top-bar .date-time { opacity: 0.8; }
+        .live-badge { background: var(--primary-color); color: white; padding: 2px 8px; border-radius: 3px; font-weight: bold; text-transform: uppercase; font-size: 10px; animation: pulse 1.5s infinite; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* Main Header / Brand */
+        header { background: #ffffff; border-bottom: 3px solid var(--primary-color); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .header-container { max-width: 1100px; margin: auto; padding: 20px 15px; display: flex; justify-content: space-between; align-items: center; }
+        .logo-area { display: flex; flex-direction: column; }
+        .logo { font-size: 32px; font-weight: 900; color: var(--primary-color); letter-spacing: -1px; text-transform: uppercase; }
+        .tagline { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* Navigation Menu */
+        nav { background: var(--secondary-color); color: white; }
+        .nav-container { max-width: 1100px; margin: auto; display: flex; overflow-x: auto; padding: 0 15px; }
+        .nav-container a { color: white; text-decoration: none; padding: 12px 18px; font-size: 14px; font-weight: 600; white-space: nowrap; border-bottom: 3px solid transparent; transition: 0.3s; }
+        .nav-container a:hover, .nav-container a.active { background: rgba(255,255,255,0.1); border-bottom: 3px solid var(--primary-color); }
+
+        /* Layout Grid */
+        .container { max-width: 1100px; margin: 25px auto; padding: 0 15px; display: grid; grid-template-columns: 2.5fr 1fr; gap: 25px; }
+        @media(max-width: 768px) { .container { grid-template-columns: 1fr; } }
+
+        /* News Stream */
+        .section-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-color); margin-bottom: 20px; padding-bottom: 8px; }
+        .section-title { font-size: 20px; font-weight: 700; color: var(--secondary-color); text-transform: uppercase; }
+        
+        .news-card { background: var(--card-bg); padding: 20px; margin-bottom: 15px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border-left: 5px solid var(--primary-color); transition: transform 0.2s; }
+        .news-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .news-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+        .news-card h2 { font-size: 18px; color: #111; margin-bottom: 10px; line-height: 1.4; font-weight: 700; cursor: pointer; }
+        .news-card h2:hover { color: var(--primary-color); }
+        .news-card p { font-size: 14px; color: #444; line-height: 1.6; }
+
+        /* Sidebar Styling */
+        .sidebar-box { background: var(--card-bg); padding: 20px; margin-bottom: 20px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border-top: 3px solid var(--secondary-color); }
+        .sidebar-title { font-size: 16px; font-weight: 700; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px; color: var(--secondary-color); text-transform: uppercase; }
+        .trending-list { list-style: none; }
+        .trending-list li { padding: 10px 0; border-bottom: 1px solid #f9f9f9; font-size: 14px; font-weight: 600; color: #333; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .trending-list li:before { content: "🔥"; font-size: 12px; }
+        .trending-list li:hover { color: var(--primary-color); }
+
+        /* Footer */
+        footer { background: var(--secondary-color); color: #aaa; text-align: center; padding: 30px 15px; margin-top: 40px; font-size: 13px; }
+        footer p { margin-bottom: 10px; color: #fff; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <!-- Top Info Bar -->
+    <div class="top-bar">
+        <div class="date-time" id="current-date"></div>
+        <div class="live-badge">● LIVE UPDATES</div>
+    </div>
+
+    <!-- Main Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo-area">
+                <div class="logo">Khabar Express</div>
+                <div class="tagline">Bharat Ka Vishwasniya News Network</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="active">Home</a>
+            <a href="#">Taaza Khabar</a>
+            <a href="#">Desh</a>
+            <a href="#">Rajya</a>
+            <a href="#">Cricket</a>
+            <a href="#">Tech & Auto</a>
+            <a href="#">Entertainment</a>
+        </div>
+    </nav>
+
+    <!-- Main Content Layout -->
+    <div class="container">
+        <!-- Main News Feed -->
+        <main>
+            <div class="section-header">
+                <div class="section-title">Taaza Tareen Khabrein</div>
+            </div>
+            <div id="news-list">
+                <p style="text-align: center; padding: 20px; color: #666;">Khabrein load ho rahi hain...</p>
+            </div>
+        </main>
+
+        <!-- Sidebar -->
+        <aside>
+            <div class="sidebar-box">
+                <div class="sidebar-title">Trending Categories</div>
+                <ul class="trending-list">
+                    <li>Sarkari Yojana 2026</li>
+                    <li>IPL Live Score & News</li>
+                    <li>Stock Market Updates</li>
+                    <li>Board Exam Results</li>
+                    <li>Bollywood Viral News</li>
+                </ul>
+            </div>
+            
+            <div class="sidebar-box" style="text-align: center; background: #fff5f5; border-top-color: var(--primary-color);">
+                <h4 style="color: var(--primary-color); margin-bottom: 8px; font-size: 16px;">Instant Alerts</h4>
+                <p style="font-size: 13px; color: #555; margin-bottom: 12px;">Har badi khabar seedha apne phone par paane ke liye jude rahein.</p>
+                <span style="display: inline-block; background: #25d366; color: white; padding: 8px 15px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer;">Join WhatsApp Group</span>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>Khabar Express Media Group</p>
+        <span style="font-size: 12px; color: #888;">&copy; 2026 All Rights Reserved. Permanent AI News Portal.</span>
+    </footer>
+
+    <!-- JavaScript Data Render -->
+    <script>
+        // Set dynamic date in top bar
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('hi-IN', options);
+
+        // Fetch and load news.json
+        fetch('news.json')
+            .then(res => res.json())
+            .then(data => {
+                let html = '';
+                data.forEach(item => {
+                    html += `
+                        <div class="news-card">
+                            <div class="news-meta">
+                                <span>📁 Verified News Feed</span>
+                                <span>📅 ${item.date}</span>
+                            </div>
+                            <h2>${item.title}</h2>
+                            <p>${item.snippet}</p>
+                        </div>
+                    `;
+                });
+                document.getElementById('news-list').innerHTML = html;
+            })
+            .catch(() => {
+                document.getElementById('news-list').innerHTML = '<p style="color: red; text-align: center;">Khabrein load karne mein samasya aayi hai.</p>';
+            });
+    </script>
+</body>
+=======
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khabar Express - Live News Portal</title>
+    <style>
+        :root {
+            --primary-color: #cc0000;
+            --secondary-color: #1a1a1a;
+            --bg-color: #f3f3f3;
+            --card-bg: #ffffff;
+            --text-main: #222222;
+            --text-muted: #555555;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.5; }
+
+        /* Top Bar */
+        .top-bar { background: var(--secondary-color); color: #fff; font-size: 12px; padding: 6px 15px; display: flex; justify-content: space-between; align-items: center; }
+        .top-bar .date-time { opacity: 0.8; }
+        .live-badge { background: var(--primary-color); color: white; padding: 2px 8px; border-radius: 3px; font-weight: bold; text-transform: uppercase; font-size: 10px; animation: pulse 1.5s infinite; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* Main Header / Brand */
+        header { background: #ffffff; border-bottom: 3px solid var(--primary-color); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .header-container { max-width: 1100px; margin: auto; padding: 20px 15px; display: flex; justify-content: space-between; align-items: center; }
+        .logo-area { display: flex; flex-direction: column; }
+        .logo { font-size: 32px; font-weight: 900; color: var(--primary-color); letter-spacing: -1px; text-transform: uppercase; }
+        .tagline { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* Navigation Menu */
+        nav { background: var(--secondary-color); color: white; }
+        .nav-container { max-width: 1100px; margin: auto; display: flex; overflow-x: auto; padding: 0 15px; }
+        .nav-container a { color: white; text-decoration: none; padding: 12px 18px; font-size: 14px; font-weight: 600; white-space: nowrap; border-bottom: 3px solid transparent; transition: 0.3s; }
+        .nav-container a:hover, .nav-container a.active { background: rgba(255,255,255,0.1); border-bottom: 3px solid var(--primary-color); }
+
+        /* Layout Grid */
+        .container { max-width: 1100px; margin: 25px auto; padding: 0 15px; display: grid; grid-template-columns: 2.5fr 1fr; gap: 25px; }
+        @media(max-width: 768px) { .container { grid-template-columns: 1fr; } }
+
+        /* News Stream */
+        .section-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-color); margin-bottom: 20px; padding-bottom: 8px; }
+        .section-title { font-size: 20px; font-weight: 700; color: var(--secondary-color); text-transform: uppercase; }
+        
+        .news-card { background: var(--card-bg); padding: 20px; margin-bottom: 15px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border-left: 5px solid var(--primary-color); transition: transform 0.2s; }
+        .news-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .news-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+        .news-card h2 { font-size: 18px; color: #111; margin-bottom: 10px; line-height: 1.4; font-weight: 700; cursor: pointer; }
+        .news-card h2:hover { color: var(--primary-color); }
+        .news-card p { font-size: 14px; color: #444; line-height: 1.6; }
+
+        /* Sidebar Styling */
+        .sidebar-box { background: var(--card-bg); padding: 20px; margin-bottom: 20px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border-top: 3px solid var(--secondary-color); }
+        .sidebar-title { font-size: 16px; font-weight: 700; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px; color: var(--secondary-color); text-transform: uppercase; }
+        .trending-list { list-style: none; }
+        .trending-list li { padding: 10px 0; border-bottom: 1px solid #f9f9f9; font-size: 14px; font-weight: 600; color: #333; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .trending-list li:before { content: "🔥"; font-size: 12px; }
+        .trending-list li:hover { color: var(--primary-color); }
+
+        /* Footer */
+        footer { background: var(--secondary-color); color: #aaa; text-align: center; padding: 30px 15px; margin-top: 40px; font-size: 13px; }
+        footer p { margin-bottom: 10px; color: #fff; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <!-- Top Info Bar -->
+    <div class="top-bar">
+        <div class="date-time" id="current-date"></div>
+        <div class="live-badge">● LIVE UPDATES</div>
+    </div>
+
+    <!-- Main Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo-area">
+                <div class="logo">Khabar Express</div>
+                <div class="tagline">Bharat Ka Vishwasniya News Network</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="active">Home</a>
+            <a href="#">Taaza Khabar</a>
+            <a href="#">Desh</a>
+            <a href="#">Rajya</a>
+            <a href="#">Cricket</a>
+            <a href="#">Tech & Auto</a>
+            <a href="#">Entertainment</a>
+        </div>
+    </nav>
+
+    <!-- Main Content Layout -->
+    <div class="container">
+        <!-- Main News Feed -->
+        <main>
+            <div class="section-header">
+                <div class="section-title">Taaza Tareen Khabrein</div>
+            </div>
+            <div id="news-list">
+                <p style="text-align: center; padding: 20px; color: #666;">Khabrein load ho rahi hain...</p>
+            </div>
+        </main>
+
+        <!-- Sidebar -->
+        <aside>
+            <div class="sidebar-box">
+                <div class="sidebar-title">Trending Categories</div>
+                <ul class="trending-list">
+                    <li>Sarkari Yojana 2026</li>
+                    <li>IPL Live Score & News</li>
+                    <li>Stock Market Updates</li>
+                    <li>Board Exam Results</li>
+                    <li>Bollywood Viral News</li>
+                </ul>
+            </div>
+            
+            <div class="sidebar-box" style="text-align: center; background: #fff5f5; border-top-color: var(--primary-color);">
+                <h4 style="color: var(--primary-color); margin-bottom: 8px; font-size: 16px;">Instant Alerts</h4>
+                <p style="font-size: 13px; color: #555; margin-bottom: 12px;">Har badi khabar seedha apne phone par paane ke liye jude rahein.</p>
+                <span style="display: inline-block; background: #25d366; color: white; padding: 8px 15px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer;">Join WhatsApp Group</span>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>Khabar Express Media Group</p>
+        <span style="font-size: 12px; color: #888;">&copy; 2026 All Rights Reserved. Permanent AI News Portal.</span>
+    </footer>
+
+    <!-- JavaScript Data Render -->
+    <script>
+        // Set dynamic date in top bar
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('hi-IN', options);
+
+        // Fetch and load news.json
+        fetch('news.json')
+            .then(res => res.json())
+            .then(data => {
+                let html = '';
+                data.forEach(item => {
+                    html += `
+                        <div class="news-card">
+                            <div class="news-meta">
+                                <span>📁 Verified News Feed</span>
+                                <span>📅 ${item.date}</span>
+                            </div>
+                            <h2>${item.title}</h2>
+                            <p>${item.snippet}</p>
+                        </div>
+                    `;
+                });
+                document.getElementById('news-list').innerHTML = html;
+            })
+            .catch(() => {
+                document.getElementById('news-list').innerHTML = '<p style="color: red; text-align: center;">Khabrein load karne mein samasya aayi hai.</p>';
+            });
+    </script>
+</body>
+>>>>>>> 9eb62572ecd57f4bbe89737c44d1ca0c374ac70c
+</html>
