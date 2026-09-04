@@ -1,10 +1,11 @@
+```yaml
 name: Update News
 
 on:
+  workflow_dispatch:
+
   schedule:
     - cron: "*/30 * * * *"
-
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -17,20 +18,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - n- name: Setup Node.js
-  uses: actions/setup-node@v4
-  with:
-    node-version: 24
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Show Node version
+        run: |
+          node --version
+          npm --version
 
       - name: Install dependencies
         run: npm install
 
-      - name: Fetch and analyze news
+      - name: Update news
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: npm run update-news
 
-      - name: Commit updated news
+      - name: Save news archive
         run: |
           git config user.name "News Express Bot"
           git config user.email "actions@github.com"
@@ -38,10 +44,9 @@ jobs:
           git add news.json
 
           if git diff --cached --quiet; then
-            echo "No new news to commit."
+            echo "No new news to save."
           else
             git commit -m "Update news archive"
             git push
           fi
-          - name: Install dependencies
-  run: npm install
+```
