@@ -1,65 +1,907 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>News-Express Admin</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f7fb;
+  color: #111827;
+}
+
+.container {
+  width: 100%;
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+}
+
+.login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  padding: 30px;
+  border-radius: 18px;
+  box-shadow: 0 10px 35px rgba(0,0,0,.08);
+}
+
+h1,
+h2,
+h3 {
+  margin-top: 0;
+}
+
+input,
+button {
+  font: inherit;
+}
+
+input {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  margin: 8px 0 12px;
+}
+
+.btn {
+  border: 0;
+  background: #111827;
+  color: white;
+  padding: 11px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  margin: 4px;
+}
+
+.btn:hover {
+  opacity: .9;
+}
+
+.btn.secondary {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 5px 20px rgba(0,0,0,.06);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.stat {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 5px 20px rgba(0,0,0,.06);
+}
+
+.stat-number {
+  font-size: 30px;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+.muted {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.progress-box {
+  width: 100%;
+  height: 22px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 15px 0 8px;
+}
+
+.progress-bar {
+  width: 0%;
+  height: 100%;
+  background: #111827;
+  transition: width .5s ease;
+}
+
+.progress-text {
+  font-weight: bold;
+  text-align: center;
+}
+
+.step {
+  padding: 12px;
+  margin-top: 7px;
+  border-radius: 10px;
+  background: #f3f4f6;
+}
+
+.status {
+  padding: 10px;
+  border-radius: 10px;
+  background: #f3f4f6;
+  margin-bottom: 10px;
+}
+
+.log {
+  max-height: 220px;
+  overflow-y: auto;
+  font-size: 14px;
+}
+
+.log-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+@media(max-width:800px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media(max-width:500px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     LOGIN
+========================= -->
+
+<div id="loginScreen" class="login">
+
+  <div class="login-box">
+
+    <h1>🔐 News-Express</h1>
+
+    <p class="muted">
+      Admin Panel
+    </p>
+
+    <input
+      id="passwordInput"
+      type="password"
+      placeholder="Enter password"
+      autocomplete="off"
+    >
+
+    <button
+      class="btn"
+      style="width:100%; margin:0"
+      onclick="login()"
+    >
+      Login
+    </button>
+
+    <p
+      id="loginMessage"
+      class="muted"
+    ></p>
+
+  </div>
+
+</div>
+
+
+<!-- =========================
+     ADMIN PANEL
+========================= -->
+
+<div id="adminPanel" class="hidden">
+
+<div class="container">
+
+  <div class="topbar">
+
+    <div>
+      <h1>📰 News-Express Admin</h1>
+
+      <div class="muted">
+        News automation control panel
+      </div>
+    </div>
+
+    <button
+      class="btn secondary"
+      onclick="logout()"
+    >
+      Logout
+    </button>
+
+  </div>
+
+
+  <!-- =========================
+       STATS
+  ========================== -->
+
+  <div class="grid">
+
+    <div class="stat">
+      <div class="muted">
+        Total Articles
+      </div>
+
+      <div
+        id="totalArticles"
+        class="stat-number"
+      >
+        0
+      </div>
+    </div>
+
+
+    <div class="stat">
+      <div class="muted">
+        Latest Article
+      </div>
+
+      <div
+        id="latestArticle"
+        style="margin-top:8px;font-weight:bold"
+      >
+        Loading...
+      </div>
+    </div>
+
+
+    <div class="stat">
+      <div class="muted">
+        Articles / Run
+      </div>
+
+      <div
+        id="articlesPerRunDisplay"
+        class="stat-number"
+      >
+        10
+      </div>
+    </div>
+
+
+    <div class="stat">
+      <div class="muted">
+        Next Update
+      </div>
+
+      <div
+        id="nextUpdate"
+        class="stat-number"
+        style="font-size:22px"
+      >
+        --
+      </div>
+    </div>
+
+  </div>
+
+
+  <br>
+
+
+  <!-- =========================
+       WORKFLOW PROGRESS
+  ========================== -->
+
+  <div class="card">
+
+    <h2>
+      ⚙️ Workflow Progress
+    </h2>
+
+    <div
+      id="workflowStatus"
+      class="status"
+    >
+      Checking GitHub Actions...
+    </div>
+
+
+    <div class="progress-box">
+
+      <div
+        id="workflowProgressBar"
+        class="progress-bar"
+      ></div>
+
+    </div>
+
+
+    <div
+      id="workflowProgressText"
+      class="progress-text"
+    >
+      0%
+    </div>
+
+
+    <div
+      id="workflowRunInfo"
+      class="muted"
+      style="margin-top:10px"
+    >
+    </div>
+
+
+    <div
+      id="workflowSteps"
+      style="margin-top:15px"
+    >
+    </div>
+
+
+    <div style="margin-top:15px">
+
+      <button
+        class="btn"
+        onclick="refreshWorkflow()"
+      >
+        🔄 Refresh
+      </button>
+
+
+      <a
+        id="githubActionsBtn"
+        href="#"
+        target="_blank"
+        class="btn secondary hidden"
+      >
+        Open GitHub Actions
+      </a>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       CONTROLS
+  ========================== -->
+
+  <div class="card">
+
+    <h2>
+      🎛️ Controls
+    </h2>
+
+
+    <button
+      class="btn"
+      onclick="manualFetch()"
+    >
+      🚀 Fetch News Now
+    </button>
+
+
+    <button
+      id="autoUpdateBtn"
+      class="btn secondary"
+      onclick="toggleAutoUpdate()"
+    >
+      🔄 Auto Update: ON
+    </button>
+
+  </div>
+
+
+  <!-- =========================
+       SETTINGS
+  ========================== -->
+
+  <div class="card">
+
+    <h2>
+      ⚙️ Settings
+    </h2>
+
+
+    <label>
+      Articles per run
+    </label>
+
+    <input
+      id="articlesPerRun"
+      type="number"
+      min="1"
+      max="10"
+      value="10"
+    >
+
+
+    <button
+      class="btn"
+      onclick="saveSettings()"
+    >
+      💾 Save Settings
+    </button>
+
+
+    <p class="muted">
+      Current target: maximum 10 articles per workflow run.
+    </p>
+
+  </div>
+
+
+  <!-- =========================
+       SYSTEM STATUS
+  ========================== -->
+
+  <div class="card">
+
+    <h2>
+      🟢 System Status
+    </h2>
+
+
+    <div
+      id="githubStatus"
+      class="status"
+    >
+      GitHub Actions: Checking...
+    </div>
+
+
+    <div
+      id="newsStatus"
+      class="status"
+    >
+      News archive: Checking...
+    </div>
+
+
+    <div
+      id="geminiStatus"
+      class="status"
+    >
+      Gemini: Used by GitHub workflow
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       ACTIVITY LOG
+  ========================== -->
+
+  <div class="card">
+
+    <h2>
+      📋 Activity Log
+    </h2>
+
+    <div
+      id="activityLog"
+      class="log"
+    >
+    </div>
+
+  </div>
+
+</div>
+
+</div>
+
+
 <script>
-/* ================================
-   GITHUB ACTIONS CONFIG
-================================ */
 
-const GITHUB_OWNER = "YOUR_GITHUB_USERNAME";
-const GITHUB_REPO = "News-Express";
-const WORKFLOW_FILE = "update.yml";
+/* ==========================================
+   CONFIGURATION
+========================================== */
 
+const ADMIN_PASSWORD = "Debraj";
 
-/* ================================
-   WORKFLOW PROGRESS
-================================ */
+const GITHUB_OWNER =
+  "YOUR_GITHUB_USERNAME";
 
-async function refreshWorkflow() {
+const GITHUB_REPO =
+  "News-Express";
 
-  const status =
-    document.getElementById("workflowStatus");
-
-  const bar =
-    document.getElementById("workflowProgressBar");
-
-  const text =
-    document.getElementById("workflowProgressText");
-
-  const stepsBox =
-    document.getElementById("workflowSteps");
-
-  const actionsBtn =
-    document.getElementById("githubActionsBtn");
+const WORKFLOW_FILE =
+  "update.yml";
 
 
-  status.textContent =
-    "🔄 Checking GitHub Actions...";
+/* ==========================================
+   LOGIN PROTECTION
+========================================== */
 
+let failedAttempts =
+  Number(
+    localStorage.getItem(
+      "newsExpressFailedAttempts"
+    ) || 0
+  );
+
+let lockUntil =
+  Number(
+    localStorage.getItem(
+      "newsExpressLockUntil"
+    ) || 0
+  );
+
+
+function login() {
+
+  const now =
+    Date.now();
+
+
+  if (
+    lockUntil &&
+    now < lockUntil
+  ) {
+
+    const seconds =
+      Math.ceil(
+        (lockUntil - now) / 1000
+      );
+
+    document.getElementById(
+      "loginMessage"
+    ).textContent =
+      `🔒 Too many attempts. Try again in ${seconds}s.`;
+
+    return;
+  }
+
+
+  const password =
+    document.getElementById(
+      "passwordInput"
+    ).value;
+
+
+  if (
+    password === ADMIN_PASSWORD
+  ) {
+
+    failedAttempts = 0;
+
+    localStorage.removeItem(
+      "newsExpressFailedAttempts"
+    );
+
+    localStorage.removeItem(
+      "newsExpressLockUntil"
+    );
+
+    sessionStorage.setItem(
+      "newsExpressLoggedIn",
+      "true"
+    );
+
+    showAdmin();
+
+    addLog(
+      "✅ Admin login successful"
+    );
+
+    return;
+  }
+
+
+  failedAttempts++;
+
+  localStorage.setItem(
+    "newsExpressFailedAttempts",
+    failedAttempts
+  );
+
+
+  if (
+    failedAttempts >= 5
+  ) {
+
+    lockUntil =
+      Date.now() +
+      5 * 60 * 1000;
+
+    localStorage.setItem(
+      "newsExpressLockUntil",
+      lockUntil
+    );
+
+    document.getElementById(
+      "loginMessage"
+    ).textContent =
+      "🔒 Locked for 5 minutes.";
+
+    return;
+  }
+
+
+  document.getElementById(
+    "loginMessage"
+  ).textContent =
+    `❌ Wrong password. ${5 - failedAttempts} attempts remaining.`;
+
+}
+
+
+function showAdmin() {
+
+  document.getElementById(
+    "loginScreen"
+  ).classList.add("hidden");
+
+  document.getElementById(
+    "adminPanel"
+  ).classList.remove("hidden");
+
+  loadSettings();
+  loadNews();
+  refreshWorkflow();
+  updateNextUpdate();
+
+}
+
+
+function logout() {
+
+  sessionStorage.removeItem(
+    "newsExpressLoggedIn"
+  );
+
+  location.reload();
+
+}
+
+
+/* ==========================================
+   ENTER KEY LOGIN
+========================================== */
+
+document
+  .getElementById("passwordInput")
+  .addEventListener(
+    "keydown",
+    function(event) {
+
+      if (
+        event.key === "Enter"
+      ) {
+
+        login();
+
+      }
+
+    }
+  );
+
+
+/* ==========================================
+   NEWS.JSON
+========================================== */
+
+async function loadNews() {
 
   try {
 
-    /* Get latest workflow run */
-
-    const runsURL =
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}` +
-      `/actions/workflows/${WORKFLOW_FILE}/runs?per_page=1`;
-
-
     const response =
-      await fetch(runsURL, {
-        headers: {
-          "Accept":
-            "application/vnd.github+json"
-        }
-      });
+      await fetch(
+        "news.json?cache=" +
+        Date.now()
+      );
 
 
     if (!response.ok) {
 
-      const errorText =
-        await response.text();
+      throw new Error(
+        "news.json unavailable"
+      );
+
+    }
+
+
+    const news =
+      await response.json();
+
+
+    const articles =
+      Array.isArray(news)
+        ? news
+        : (
+            news.articles ||
+            []
+          );
+
+
+    document.getElementById(
+      "totalArticles"
+    ).textContent =
+      articles.length;
+
+
+    if (
+      articles.length > 0
+    ) {
+
+      const latest =
+        articles[0];
+
+
+      document.getElementById(
+        "latestArticle"
+      ).textContent =
+        latest.title ||
+        "Untitled";
+
+
+      document.getElementById(
+        "newsStatus"
+      ).textContent =
+        `🟢 News archive OK — ${articles.length} articles`;
+
+    } else {
+
+      document.getElementById(
+        "latestArticle"
+      ).textContent =
+        "No articles";
+
+      document.getElementById(
+        "newsStatus"
+      ).textContent =
+        "🟡 News archive is empty";
+
+    }
+
+
+    addLog(
+      `📰 Loaded ${articles.length} articles`
+    );
+
+
+  } catch (error) {
+
+    document.getElementById(
+      "newsStatus"
+    ).textContent =
+      "🔴 Cannot read news.json";
+
+    addLog(
+      "❌ news.json error: " +
+      error.message
+    );
+
+  }
+
+}
+
+
+/* ==========================================
+   GITHUB ACTIONS
+========================================== */
+
+async function refreshWorkflow() {
+
+  const status =
+    document.getElementById(
+      "workflowStatus"
+    );
+
+  const bar =
+    document.getElementById(
+      "workflowProgressBar"
+    );
+
+  const text =
+    document.getElementById(
+      "workflowProgressText"
+    );
+
+  const stepsBox =
+    document.getElementById(
+      "workflowSteps"
+    );
+
+  const runInfo =
+    document.getElementById(
+      "workflowRunInfo"
+    );
+
+  const actionsBtn =
+    document.getElementById(
+      "githubActionsBtn"
+    );
+
+
+  if (
+    GITHUB_OWNER ===
+      "YOUR_GITHUB_USERNAME"
+  ) {
+
+    status.innerHTML =
+      "⚠️ Set your GitHub username in admin.html";
+
+    document.getElementById(
+      "githubStatus"
+    ).textContent =
+      "🔴 GitHub username not configured";
+
+    return;
+  }
+
+
+  try {
+
+    status.textContent =
+      "🔄 Checking GitHub Actions...";
+
+
+    const runsURL =
+      `https://api.github.com/repos/${encodeURIComponent(GITHUB_OWNER)}/${encodeURIComponent(GITHUB_REPO)}` +
+      `/actions/workflows/${encodeURIComponent(WORKFLOW_FILE)}/runs?per_page=1`;
+
+
+    const response =
+      await fetch(
+        runsURL,
+        {
+          headers: {
+            "Accept":
+              "application/vnd.github+json"
+          }
+        }
+      );
+
+
+    if (!response.ok) {
 
       throw new Error(
-        `GitHub API ${response.status}: ${errorText}`
+        `GitHub API ${response.status}`
       );
+
     }
 
 
@@ -75,10 +917,16 @@ async function refreshWorkflow() {
       status.textContent =
         "ℹ️ No workflow runs found";
 
-      bar.style.width = "0%";
-      text.textContent = "0%";
+      bar.style.width =
+        "0%";
 
-      stepsBox.innerHTML = "";
+      text.textContent =
+        "0%";
+
+      document.getElementById(
+        "githubStatus"
+      ).textContent =
+        "🟡 No workflow runs found";
 
       return;
     }
@@ -88,41 +936,53 @@ async function refreshWorkflow() {
       data.workflow_runs[0];
 
 
-    /* GitHub Actions button */
-
     actionsBtn.href =
       run.html_url;
 
-    actionsBtn.style.display =
-      "inline-block";
+    actionsBtn.classList.remove(
+      "hidden"
+    );
 
 
-    /* ================================
-       GET JOBS
-    ================================= */
+    /* Run information */
+
+    const started =
+      run.created_at
+        ? new Date(
+            run.created_at
+          ).toLocaleString()
+        : "Unknown";
+
+
+    runInfo.innerHTML =
+      `Run #${run.run_number} • ${run.status} • Started ${started}`;
+
+
+    /* Jobs */
 
     const jobsURL =
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}` +
+      `https://api.github.com/repos/${encodeURIComponent(GITHUB_OWNER)}/${encodeURIComponent(GITHUB_REPO)}` +
       `/actions/runs/${run.id}/jobs?per_page=20`;
 
 
     const jobsResponse =
-      await fetch(jobsURL, {
-        headers: {
-          "Accept":
-            "application/vnd.github+json"
+      await fetch(
+        jobsURL,
+        {
+          headers: {
+            "Accept":
+              "application/vnd.github+json"
+          }
         }
-      });
+      );
 
 
     if (!jobsResponse.ok) {
 
-      const errorText =
-        await jobsResponse.text();
-
       throw new Error(
-        `Jobs API ${jobsResponse.status}: ${errorText}`
+        `Jobs API ${jobsResponse.status}`
       );
+
     }
 
 
@@ -133,49 +993,57 @@ async function refreshWorkflow() {
     let steps = [];
 
 
-    if (jobsData.jobs) {
+    if (
+      jobsData.jobs
+    ) {
 
-      jobsData.jobs.forEach(job => {
+      jobsData.jobs.forEach(
+        job => {
 
-        if (job.steps) {
+          if (
+            job.steps
+          ) {
 
-          steps.push(
-            ...job.steps
-          );
+            steps.push(
+              ...job.steps
+            );
+
+          }
 
         }
-
-      });
+      );
 
     }
 
 
-    /* ================================
-       CALCULATE PROGRESS
-    ================================= */
-
     let progress = 0;
 
 
-    if (steps.length > 0) {
+    if (
+      steps.length > 0
+    ) {
 
       const completed =
         steps.filter(
           step =>
-            step.status === "completed"
+            step.status ===
+            "completed"
         ).length;
 
 
       progress =
         Math.round(
-          (completed / steps.length) * 100
+          completed /
+          steps.length *
+          100
         );
 
     }
 
 
     if (
-      run.status === "completed"
+      run.status ===
+      "completed"
     ) {
 
       progress = 100;
@@ -190,16 +1058,16 @@ async function refreshWorkflow() {
       progress + "%";
 
 
-    /* ================================
-       STATUS
-    ================================= */
+    /* Status */
 
     if (
-      run.status === "completed"
+      run.status ===
+      "completed"
     ) {
 
       if (
-        run.conclusion === "success"
+        run.conclusion ===
+        "success"
       ) {
 
         status.textContent =
@@ -213,14 +1081,16 @@ async function refreshWorkflow() {
       }
 
     } else if (
-      run.status === "in_progress"
+      run.status ===
+      "in_progress"
     ) {
 
       status.textContent =
         "🔄 Workflow running...";
 
     } else if (
-      run.status === "queued"
+      run.status ===
+      "queued"
     ) {
 
       status.textContent =
@@ -235,89 +1105,96 @@ async function refreshWorkflow() {
     }
 
 
-    /* ================================
-       SHOW STEPS
-    ================================= */
+    document.getElementById(
+      "githubStatus"
+    ).textContent =
+      "🟢 GitHub Actions connected";
+
+
+    /* Steps */
 
     stepsBox.innerHTML = "";
 
 
-    steps.forEach(step => {
+    steps.forEach(
+      step => {
 
-      let icon = "⏳";
+        let icon =
+          "⏳";
 
-
-      if (
-        step.status === "completed"
-      ) {
 
         if (
-          step.conclusion === "success"
+          step.status ===
+          "completed"
         ) {
 
-          icon = "✅";
+          icon =
+            step.conclusion ===
+            "success"
+              ? "✅"
+              : "❌";
 
-        } else {
+        } else if (
+          step.status ===
+          "in_progress"
+        ) {
 
-          icon = "❌";
+          icon =
+            "🔄";
 
         }
 
-      } else if (
-        step.status === "in_progress"
-      ) {
 
-        icon = "🔄";
+        const div =
+          document.createElement(
+            "div"
+          );
+
+
+        div.className =
+          "step";
+
+
+        div.innerHTML =
+          `
+          ${icon}
+          <b>${escapeHTML(step.name)}</b>
+          <br>
+          <small>
+            ${escapeHTML(
+              step.status || ""
+            )}
+          </small>
+          `;
+
+
+        stepsBox.appendChild(
+          div
+        );
 
       }
+    );
 
 
-      const div =
-        document.createElement("div");
-
-
-      div.style.padding =
-        "10px";
-
-      div.style.marginTop =
-        "6px";
-
-      div.style.borderRadius =
-        "8px";
-
-      div.style.background =
-        "#f3f4f6";
-
-
-      div.innerHTML = `
-        ${icon}
-        <b>${escapeHTML(step.name)}</b>
-        <br>
-        <small>
-          ${escapeHTML(step.status || "")}
-        </small>
-      `;
-
-
-      stepsBox.appendChild(div);
-
-    });
-
-
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
-      "GitHub Actions Error:",
       error
     );
 
 
     status.innerHTML =
-      `⚠️ Unable to read GitHub Actions
-       <br>
-       <small style="color:#b91c1c">
-       ${escapeHTML(error.message)}
-       </small>`;
+      `
+      ⚠️ Unable to read GitHub Actions
+      <br>
+      <small>
+      ${escapeHTML(
+        error.message
+      )}
+      </small>
+      `;
 
 
     bar.style.width =
@@ -326,38 +1203,342 @@ async function refreshWorkflow() {
     text.textContent =
       "0%";
 
+
+    document.getElementById(
+      "githubStatus"
+    ).textContent =
+      "🔴 GitHub Actions API error";
+
+
+    addLog(
+      "❌ GitHub Actions: " +
+      error.message
+    );
+
   }
 
 }
 
 
-/* ================================
-   SAFE HTML
-================================ */
+/* ==========================================
+   NEXT UPDATE
+========================================== */
 
-function escapeHTML(value) {
+function updateNextUpdate() {
 
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+  const now =
+    new Date();
+
+
+  const next =
+    new Date(now);
+
+
+  if (
+    now.getMinutes() < 30
+  ) {
+
+    next.setMinutes(
+      30,
+      0,
+      0
+    );
+
+  } else {
+
+    next.setHours(
+      now.getHours() + 1,
+      0,
+      0,
+      0
+    );
+
+  }
+
+
+  const diff =
+    next - now;
+
+
+  const totalSeconds =
+    Math.max(
+      0,
+      Math.floor(
+        diff / 1000
+      )
+    );
+
+
+  const minutes =
+    Math.floor(
+      totalSeconds / 60
+    );
+
+
+  const seconds =
+    totalSeconds % 60;
+
+
+  document.getElementById(
+    "nextUpdate"
+  ).textContent =
+    `${minutes}m ${String(seconds).padStart(2,"0")}s`;
 
 }
 
 
-/* ================================
-   START
-================================ */
-
-refreshWorkflow();
-
-
-/* Refresh every 10 seconds */
-
 setInterval(
-  refreshWorkflow,
-  10000
+  updateNextUpdate,
+  1000
 );
+
+
+/* ==========================================
+   SETTINGS
+========================================== */
+
+function loadSettings() {
+
+  const saved =
+    localStorage.getItem(
+      "articlesPerRun"
+    );
+
+
+  const value =
+    saved || "10";
+
+
+  document.getElementById(
+    "articlesPerRun"
+  ).value =
+    value;
+
+
+  document.getElementById(
+    "articlesPerRunDisplay"
+  ).textContent =
+    value;
+
+}
+
+
+function saveSettings() {
+
+  let value =
+    Number(
+      document.getElementById(
+        "articlesPerRun"
+      ).value
+    );
+
+
+  if (
+    value < 1
+  ) value = 1;
+
+
+  if (
+    value > 10
+  ) value = 10;
+
+
+  localStorage.setItem(
+    "articlesPerRun",
+    value
+  );
+
+
+  document.getElementById(
+    "articlesPerRun"
+  ).value =
+    value;
+
+
+  document.getElementById(
+    "articlesPerRunDisplay"
+  ).textContent =
+    value;
+
+
+  addLog(
+    `⚙️ Articles per run set to ${value}`
+  );
+
+}
+
+
+/* ==========================================
+   AUTO UPDATE
+========================================== */
+
+let autoUpdate =
+  localStorage.getItem(
+    "autoUpdate"
+  ) !== "false";
+
+
+function updateAutoButton() {
+
+  const button =
+    document.getElementById(
+      "autoUpdateBtn"
+    );
+
+
+  button.textContent =
+    autoUpdate
+      ? "🔄 Auto Update: ON"
+      : "⏸️ Auto Update: OFF";
+
+}
+
+
+function toggleAutoUpdate() {
+
+  autoUpdate =
+    !autoUpdate;
+
+
+  localStorage.setItem(
+    "autoUpdate",
+    autoUpdate
+  );
+
+
+  updateAutoButton();
+
+
+  addLog(
+    autoUpdate
+      ? "🟢 Auto Update enabled"
+      : "⏸️ Auto Update disabled"
+  );
+
+}
+
+
+updateAutoButton();
+
+
+/* ==========================================
+   FETCH NOW
+========================================== */
+
+function manualFetch() {
+
+  alert(
+    "🚀 Manual workflow trigger requires a secure GitHub backend/token. Do not put a GitHub token inside admin.html."
+  );
+
+
+  addLog(
+    "⚠️ Manual Fetch requested — secure backend required"
+  );
+
+}
+
+
+/* ==========================================
+   ACTIVITY LOG
+========================================== */
+
+function addLog(
+  message
+) {
+
+  const log =
+    document.getElementById(
+      "activityLog"
+    );
+
+
+  const item =
+    document.createElement(
+      "div"
+    );
+
+
+  item.className =
+    "log-item";
+
+
+  item.textContent =
+    new Date()
+      .toLocaleTimeString() +
+    " — " +
+    message;
+
+
+  log.prepend(
+    item
+  );
+
+
+  while (
+    log.children.length > 30
+  ) {
+
+    log.removeChild(
+      log.lastChild
+    );
+
+  }
+
+}
+
+
+/* ==========================================
+   HTML ESCAPE
+========================================== */
+
+function escapeHTML(
+  value
+) {
+
+  return String(
+    value
+  )
+  .replaceAll(
+    "&",
+    "&amp;"
+  )
+  .replaceAll(
+    "<",
+    "&lt;"
+  )
+  .replaceAll(
+    ">",
+    "&gt;"
+  )
+  .replaceAll(
+    '"',
+    "&quot;"
+  )
+  .replaceAll(
+    "'",
+    "&#039;"
+  );
+
+}
+
+
+/* ==========================================
+   AUTO LOGIN CHECK
+========================================== */
+
+if (
+  sessionStorage.getItem(
+    "newsExpressLoggedIn"
+  ) === "true"
+) {
+
+  showAdmin();
+
+}
+
 </script>
+
+</body>
+</html>
+```
