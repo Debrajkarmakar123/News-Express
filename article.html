@@ -1,470 +1,516 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>News-Express Article</title>
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+  News-Express Article
+</title>
 
 <style>
+
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background: #f3f3f3;
-    color: #222;
+  margin: 0;
+
+  background: #f4f4f4;
+
+  font-family: Arial, sans-serif;
+
+  color: #171717;
 }
 
-header {
-    background: white;
-    border-bottom: 3px solid #cc0000;
-}
+.header {
+  background: #111;
 
-.header-container {
-    max-width: 900px;
-    margin: auto;
-    padding: 20px 15px;
+  color: #fff;
+
+  padding: 18px 5%;
 }
 
 .logo {
-    color: #cc0000;
-    font-size: 30px;
-    font-weight: 900;
+  color: #f22;
+
+  font-weight: 900;
+
+  font-size: 28px;
 }
 
-nav {
-    background: #1a1a1a;
-}
+.wrap {
+  max-width: 900px;
 
-.nav-container {
-    max-width: 900px;
-    margin: auto;
-    display: flex;
-}
+  margin: 25px auto;
 
-.nav-container a {
-    color: white;
-    text-decoration: none;
-    padding: 13px 18px;
-}
-
-.article-container {
-    max-width: 900px;
-    margin: 30px auto;
-    padding: 0 15px;
+  padding: 0 15px;
 }
 
 .article {
-    background: white;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,.08);
+  background: #fff;
+
+  padding: 28px;
+
+  border-radius: 10px;
 }
 
-.category {
-    color: #cc0000;
-    font-weight: bold;
-    font-size: 13px;
-    text-transform: uppercase;
-    margin-bottom: 10px;
+.meta {
+  color: #777;
+
+  font-size: 13px;
+
+  margin-bottom: 12px;
 }
 
-h1 {
-    font-size: 38px;
-    line-height: 1.2;
-    margin-bottom: 15px;
-}
+.hero {
+  width: 100%;
 
-.date {
-    color: #777;
-    font-size: 13px;
-    margin-bottom: 20px;
-}
+  max-height: 500px;
 
-.hero-image {
-    width: 100%;
-    max-height: 500px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 25px;
+  object-fit: cover;
+
+  border-radius: 8px;
+
+  margin: 10px 0 22px;
 }
 
 .summary {
-    font-size: 19px;
-    line-height: 1.7;
-    font-weight: 600;
-    margin-bottom: 25px;
+  font-size: 19px;
+
+  line-height: 1.7;
+
+  font-weight: 600;
+
+  color: #444;
+
+  border-left: 4px solid #d00;
+
+  padding-left: 15px;
 }
 
-.video-box {
-    margin: 25px 0;
+.points {
+  background: #f7f7f7;
+
+  padding: 18px 25px;
+
+  border-radius: 8px;
+
+  margin: 22px 0;
 }
 
-.video-box video,
-.video-box iframe {
-    width: 100%;
-    min-height: 420px;
-    border: 0;
-    border-radius: 8px;
+.points li {
+  margin: 8px 0;
 }
 
-.key-points {
-    background: #f7f7f7;
-    padding: 20px;
-    margin: 25px 0;
-    border-left: 4px solid #cc0000;
+.body {
+  font-size: 18px;
+
+  line-height: 1.85;
 }
 
-.key-points h3 {
-    margin-bottom: 10px;
+.body h2 {
+  font-size: 25px;
+
+  margin-top: 30px;
 }
 
-.key-points li {
-    margin: 8px 0 0 20px;
+.video {
+  margin: 25px 0;
 }
 
-.article-body {
-    font-size: 18px;
-    line-height: 1.85;
+.video iframe {
+  width: 100%;
+
+  aspect-ratio: 16 / 9;
+
+  border: 0;
+
+  border-radius: 8px;
 }
 
-.article-body h2 {
-    font-size: 25px;
-    margin: 30px 0 12px;
-    color: #111;
+.video video {
+  width: 100%;
+
+  border-radius: 8px;
+}
+
+a.back {
+  display: inline-block;
+
+  margin-bottom: 15px;
+
+  color: #d00;
+
+  text-decoration: none;
+
+  font-weight: 700;
 }
 
 .tags {
-    margin-top: 30px;
+  margin-top: 25px;
 }
 
 .tag {
-    display: inline-block;
-    background: #eee;
-    padding: 6px 10px;
-    margin: 4px;
-    border-radius: 4px;
-    font-size: 13px;
-}
+  display: inline-block;
 
-footer {
-    background: #1a1a1a;
-    color: #aaa;
-    text-align: center;
-    padding: 30px;
-    margin-top: 40px;
+  background: #eee;
+
+  padding: 5px 9px;
+
+  border-radius: 20px;
+
+  margin: 4px;
+
+  font-size: 12px;
 }
 
 @media (max-width: 600px) {
-    .article {
-        padding: 20px;
-    }
 
-    h1 {
-        font-size: 28px;
-    }
+  .article {
+    padding: 18px;
+  }
 
-    .article-body {
-        font-size: 16px;
-    }
+  .body {
+    font-size: 16px;
+  }
 
-    .video-box video,
-    .video-box iframe {
-        min-height: 230px;
-    }
 }
+
 </style>
+
 </head>
 
 <body>
 
-<header>
-    <div class="header-container">
-        <div class="logo">NEWS-EXPRESS</div>
-    </div>
+<header class="header">
+
+<div class="logo">
+NEWS-EXPRESS
+</div>
+
 </header>
 
-<nav>
-    <div class="nav-container">
-        <a href="index.html">← Back to News</a>
-    </div>
-</nav>
+<main class="wrap">
 
-<div class="article-container">
+<a
+  class="back"
+  href="index.html"
+>
+← Back to News
+</a>
 
-    <article class="article" id="article">
-        Loading article...
-    </article>
+<article
+  class="article"
+  id="article"
+>
+Loading...
+</article>
+
+</main>
+
+<script>
+
+const esc = value =>
+  String(value ?? "")
+    .replace(
+      /[&<>'"]/g,
+      char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "'": "&#39;",
+        '"': "&quot;"
+      }[char])
+    );
+
+function formatArticle(text = "") {
+
+  return text
+    .split(/\n\s*\n/)
+    .map(paragraph => {
+
+      const value =
+        paragraph.trim();
+
+      if (!value) {
+        return "";
+      }
+
+      if (
+        value.startsWith("## ")
+      ) {
+
+        return `
+          <h2>
+            ${esc(
+              value.slice(3)
+            )}
+          </h2>
+        `;
+
+      }
+
+      return `
+        <p>
+          ${esc(value)
+            .replace(
+              /\n/g,
+              "<br>"
+            )}
+        </p>
+      `;
+
+    })
+    .join("");
+}
+
+function videoHTML(url = "") {
+
+  if (!url) {
+    return "";
+  }
+
+  if (
+    /youtube\.com|youtu\.be/i.test(
+      url
+    )
+  ) {
+
+    let videoId = "";
+
+    try {
+
+      const parsed =
+        new URL(url);
+
+      if (
+        parsed.hostname.includes(
+          "youtu.be"
+        )
+      ) {
+
+        videoId =
+          parsed.pathname.slice(1);
+
+      } else {
+
+        videoId =
+          parsed.searchParams.get(
+            "v"
+          );
+      }
+
+    } catch {
+      return "";
+    }
+
+    if (!videoId) {
+      return "";
+    }
+
+    return `
+
+<div class="video">
+
+<iframe
+  src="https://www.youtube.com/embed/${encodeURIComponent(videoId)}"
+  title="News video"
+  allowfullscreen
+></iframe>
 
 </div>
 
-<footer>
-    News-Express
-</footer>
+`;
 
-<script>
-function escapeHTML(value = "") {
-    return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
+  }
 
-function formatDate(date) {
-    const d = new Date(date);
+  return `
 
-    if (Number.isNaN(d.getTime())) {
-        return "";
-    }
+<div class="video">
 
-    return d.toLocaleString("en-IN", {
-        dateStyle: "medium",
-        timeStyle: "short"
-    });
-}
+<video
+  controls
+  src="${esc(url)}"
+></video>
 
-function formatArticle(text = "") {
-    const lines = text.split("\n");
+</div>
 
-    let html = "";
+`;
 
-    for (const line of lines) {
-
-        const clean = escapeHTML(
-            line.trim()
-        );
-
-        if (!clean) {
-            continue;
-        }
-
-        if (clean.startsWith("## ")) {
-            html += `
-                <h2>
-                    ${clean.substring(3)}
-                </h2>
-            `;
-        } else {
-            html += `
-                <p>
-                    ${clean}
-                </p>
-            `;
-        }
-    }
-
-    return html;
-}
-
-function youtubeEmbed(url) {
-    try {
-        const u = new URL(url);
-
-        let videoId = "";
-
-        if (
-            u.hostname.includes("youtube.com")
-        ) {
-            videoId = u.searchParams.get("v") || "";
-        }
-
-        if (
-            u.hostname === "youtu.be"
-        ) {
-            videoId =
-                u.pathname.replace("/", "");
-        }
-
-        if (!videoId) {
-            return "";
-        }
-
-        return `
-            <div class="video-box">
-                <iframe
-                    src="https://www.youtube.com/embed/${encodeURIComponent(videoId)}"
-                    title="News video"
-                    allowfullscreen>
-                </iframe>
-            </div>
-        `;
-    } catch {
-        return "";
-    }
 }
 
 const id =
-    new URLSearchParams(
-        window.location.search
-    ).get("id");
+  new URLSearchParams(
+    location.search
+  ).get("id");
 
-if (!id) {
-    document.getElementById("article").innerHTML =
-        "<h1>Article not found</h1>";
-} else {
+fetch(
+  "news.json",
+  {
+    cache: "no-store"
+  }
+)
 
-    fetch("news.json")
-        .then(res => res.json())
-        .then(data => {
+.then(response => {
 
-            const item = data.find(
-                news => String(news.id) === String(id)
-            );
+  if (!response.ok) {
+    throw new Error(
+      "news.json failed"
+    );
+  }
 
-            if (!item) {
-                document.getElementById(
-                    "article"
-                ).innerHTML =
-                    "<h1>Article not found</h1>";
+  return response.json();
+})
 
-                return;
-            }
+.then(data => {
 
-            let imageHTML = "";
+  const item =
+    data.find(
+      news =>
+        String(news.id) ===
+        String(id)
+    );
 
-            if (item.image) {
-                imageHTML = `
-                    <img
-                        class="hero-image"
-                        src="${escapeHTML(item.image)}"
-                        alt="${escapeHTML(item.headline || "News image")}"
-                    >
-                `;
-            }
+  if (!item) {
 
-            let videoHTML = "";
+    document.getElementById(
+      "article"
+    ).innerHTML =
+      "<h2>Article nahi mila.</h2>";
 
-            if (item.video) {
+    return;
+  }
 
-                if (
-                    /youtube\.com|youtu\.be/i
-                        .test(item.video)
-                ) {
-                    videoHTML =
-                        youtubeEmbed(item.video);
-                } else {
+  document.title =
+    `${item.headline} - News-Express`;
 
-                    videoHTML = `
-                        <div class="video-box">
-                            <video
-                                controls
-                                preload="metadata"
-                                src="${escapeHTML(item.video)}">
-                            </video>
-                        </div>
-                    `;
-                }
-            }
+  document.getElementById(
+    "article"
+  ).innerHTML = `
 
-            let keyPointsHTML = "";
+<div class="meta">
 
-            if (
-                Array.isArray(item.keyPoints) &&
-                item.keyPoints.length
-            ) {
+${esc(
+  item.category ||
+  "News"
+)}
 
-                keyPointsHTML = `
-                    <div class="key-points">
-                        <h3>Key Points</h3>
+•
 
-                        <ul>
-                            ${item.keyPoints
-                                .map(
-                                    point =>
-                                        `<li>${escapeHTML(point)}</li>`
-                                )
-                                .join("")}
-                        </ul>
-                    </div>
-                `;
-            }
+${esc(
+  item.publishedAt
+    ? new Date(
+        item.publishedAt
+      ).toLocaleString(
+        "en-IN"
+      )
+    : ""
+)}
 
-            let tagsHTML = "";
+</div>
 
-            if (
-                Array.isArray(item.tags) &&
-                item.tags.length
-            ) {
+<h1>
+${esc(item.headline)}
+</h1>
 
-                tagsHTML = `
-                    <div class="tags">
-                        ${item.tags
-                            .map(
-                                tag =>
-                                    `<span class="tag">#${escapeHTML(tag)}</span>`
-                            )
-                            .join("")}
-                    </div>
-                `;
-            }
-
-            document.title =
-                `${item.headline} - News-Express`;
-
-            document.getElementById(
-                "article"
-            ).innerHTML = `
-
-                <div class="category">
-                    ${escapeHTML(
-                        item.category || "News"
-                    )}
-                </div>
-
-                <h1>
-                    ${escapeHTML(
-                        item.headline ||
-                        item.originalTitle ||
-                        "Untitled"
-                    )}
-                </h1>
-
-                <div class="date">
-                    ${escapeHTML(
-                        formatDate(item.publishedAt)
-                    )}
-                </div>
-
-                ${imageHTML}
-
-                <div class="summary">
-                    ${escapeHTML(
-                        item.summary || ""
-                    )}
-                </div>
-
-                ${videoHTML}
-
-                ${keyPointsHTML}
-
-                <div class="article-body">
-                    ${formatArticle(
-                        item.article || ""
-                    )}
-                </div>
-
-                ${tagsHTML}
-            `;
-        })
-        .catch(error => {
-
-            console.error(error);
-
-            document.getElementById(
-                "article"
-            ).innerHTML =
-                "<h1>Article load nahi ho raha.</h1>";
-        });
+${
+  item.image
+    ? `
+<img
+  class="hero"
+  src="${esc(item.image)}"
+  alt="${esc(item.headline)}"
+  onerror="this.style.display='none'"
+>
+`
+    : ""
 }
+
+<div class="summary">
+
+${esc(item.summary)}
+
+</div>
+
+${
+  Array.isArray(
+    item.keyPoints
+  ) &&
+  item.keyPoints.length
+
+    ? `
+
+<div class="points">
+
+<strong>
+Key Points
+</strong>
+
+<ul>
+
+${item.keyPoints
+  .map(
+    point =>
+      `<li>${esc(point)}</li>`
+  )
+  .join("")}
+
+</ul>
+
+</div>
+
+`
+
+    : ""
+}
+
+${videoHTML(item.video)}
+
+<div class="body">
+
+${formatArticle(
+  item.article ||
+  item.summary
+)}
+
+</div>
+
+<div class="tags">
+
+${
+  (item.tags || [])
+    .map(
+      tag =>
+        `<span class="tag">#${esc(tag)}</span>`
+    )
+    .join("")
+}
+
+</div>
+
+`;
+
+})
+
+.catch(() => {
+
+  document.getElementById(
+    "article"
+  ).textContent =
+    "Article load nahi ho paaya.";
+
+});
+
 </script>
 
 </body>
+
 </html>
-```
