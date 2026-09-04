@@ -1,7 +1,6 @@
 ```html
 <!DOCTYPE html>
 <html lang="hi">
-
 <head>
 
     <meta charset="UTF-8">
@@ -11,222 +10,238 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Article - Khabar Express</title>
-
+    <title>News-Express - Article</title>
 
     <style>
+
+        :root {
+            --primary: #cc0000;
+            --dark: #1a1a1a;
+            --bg: #f3f3f3;
+            --text: #222;
+            --muted: #666;
+        }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family:
+                "Segoe UI",
+                Tahoma,
+                Geneva,
+                Verdana,
+                sans-serif;
         }
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f4f4f4;
-            color: #111;
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .topbar {
-            background: #111;
-            color: white;
-            padding: 8px 20px;
-            font-size: 13px;
-        }
-
-        .topbar-inner {
-            max-width: 1100px;
-            margin: auto;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .live span {
-            color: #c40000;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
         }
 
         header {
             background: white;
-            border-bottom: 4px solid #c40000;
+            border-bottom: 3px solid var(--primary);
         }
 
-        .header-inner {
-            max-width: 1100px;
+        .header-container {
+            max-width: 900px;
             margin: auto;
-            padding: 22px 20px;
+            padding: 20px 15px;
         }
 
         .logo {
-            font-family: Georgia, serif;
-            font-size: 40px;
-            font-weight: bold;
-            color: #c40000;
+            color: var(--primary);
+            font-size: 30px;
+            font-weight: 900;
+            text-transform: uppercase;
         }
 
         .tagline {
-            color: #666;
+            color: var(--muted);
             font-size: 12px;
-            margin-top: 6px;
+            font-weight: 600;
         }
 
         nav {
-            background: #111;
+            background: var(--dark);
         }
 
-        .nav-inner {
-            max-width: 1100px;
+        .nav-container {
+            max-width: 900px;
             margin: auto;
-            display: flex;
-            overflow-x: auto;
+            padding: 0 15px;
         }
 
-        .nav-inner a {
+        .nav-container a {
+            display: inline-block;
             color: white;
-            padding: 14px 20px;
+            text-decoration: none;
+            padding: 12px 15px;
             font-size: 14px;
-            font-weight: bold;
-            white-space: nowrap;
+            font-weight: 600;
         }
 
-        .nav-inner a:hover {
-            background: #c40000;
+        .nav-container a:hover {
+            background: rgba(255,255,255,0.1);
         }
 
-        .container {
-            max-width: 1000px;
-            margin: 35px auto;
-            padding: 0 20px;
+        main {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 15px;
         }
 
         .article {
             background: white;
-            border: 1px solid #ddd;
-            padding: 40px;
-        }
+            border-radius: 8px;
+            padding: 30px;
 
-        .back {
-            display: inline-block;
-            color: #c40000;
-            font-weight: bold;
-            margin-bottom: 28px;
-        }
-
-        .category {
-            display: inline-block;
-            color: #c40000;
-            font-weight: bold;
-            font-size: 13px;
-            text-transform: uppercase;
-            margin-bottom: 12px;
-        }
-
-        h1 {
-            font-family: Georgia, "Times New Roman", serif;
-            font-size: 44px;
-            line-height: 1.2;
-            margin-bottom: 18px;
+            box-shadow:
+                0 2px 10px rgba(0,0,0,0.05);
         }
 
         .meta {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
-            color: #666;
+            gap: 10px 20px;
+
+            color: var(--muted);
             font-size: 13px;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 18px;
-            margin-bottom: 25px;
+
+            margin-bottom: 15px;
+        }
+
+        .category {
+            display: inline-block;
+
+            background: #f0f0f0;
+            color: #333;
+
+            padding: 4px 9px;
+            border-radius: 4px;
+
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 36px;
+            line-height: 1.25;
+            margin-bottom: 20px;
+            color: #111;
         }
 
         .summary {
-            font-size: 19px;
-            line-height: 1.9;
-            color: #333;
-            white-space: pre-line;
-        }
+            font-size: 18px;
+            line-height: 1.8;
 
-        .original-title {
-            margin-top: 25px;
-            padding: 15px;
-            background: #f7f7f7;
-            border-left: 3px solid #c40000;
-            color: #555;
-            font-size: 13px;
+            padding: 20px;
+
+            background: #fafafa;
+            border-left: 4px solid var(--primary);
+
+            margin: 25px 0;
         }
 
         .tags {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin: 28px 0;
+            margin: 20px 0;
         }
 
         .tag {
-            background: #eee;
-            padding: 7px 11px;
+            background: #eeeeee;
+            padding: 5px 9px;
+            border-radius: 4px;
+
             font-size: 12px;
-            border-radius: 3px;
+            color: #444;
         }
 
         .source-box {
-            border-top: 2px solid #111;
             margin-top: 30px;
             padding-top: 20px;
+
+            border-top: 1px solid #ddd;
         }
 
-        .source-button {
+        .source-link {
             display: inline-block;
-            background: #c40000;
+
+            margin-top: 10px;
+
+            background: var(--primary);
             color: white;
-            padding: 12px 18px;
-            margin-top: 12px;
-            font-weight: bold;
+
+            text-decoration: none;
+
+            padding: 10px 16px;
+            border-radius: 5px;
+
+            font-weight: 700;
+            font-size: 14px;
         }
 
-        .source-button:hover {
-            background: #111;
+        .source-link:hover {
+            opacity: 0.9;
+        }
+
+        .back {
+            display: inline-block;
+
+            margin-bottom: 20px;
+
+            color: var(--primary);
+            text-decoration: none;
+
+            font-weight: 700;
         }
 
         .not-found {
+            background: white;
+            border-radius: 8px;
+
+            padding: 50px 25px;
+
             text-align: center;
-            padding: 50px 20px;
         }
 
-        .not-found h2 {
-            margin-bottom: 15px;
+        .not-found h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .not-found p {
+            color: var(--muted);
+            margin-bottom: 20px;
         }
 
         footer {
-            background: #111;
+            background: var(--dark);
             color: #aaa;
             text-align: center;
-            padding: 30px;
+
+            padding: 25px 15px;
             margin-top: 40px;
-            font-size: 12px;
+
+            font-size: 13px;
         }
 
         @media (max-width: 700px) {
 
-            .logo {
-                font-size: 31px;
-            }
-
             .article {
-                padding: 22px;
+                padding: 20px;
             }
 
             h1 {
-                font-size: 30px;
+                font-size: 27px;
             }
 
             .summary {
-                font-size: 17px;
+                font-size: 16px;
             }
 
         }
@@ -235,228 +250,220 @@
 
 </head>
 
-
 <body>
 
 
-    <div class="topbar">
+<header>
 
-        <div class="topbar-inner">
+    <div class="header-container">
 
-            <div id="date">
-                Loading...
-            </div>
+        <div class="logo">
+            News-Express
+        </div>
 
-            <div class="live">
-                <span>●</span> LIVE NEWS
-            </div>
+        <div class="tagline">
+            Latest News • Trusted Updates
+        </div>
+
+    </div>
+
+</header>
+
+
+<nav>
+
+    <div class="nav-container">
+
+        <a href="index.html">
+            ← Latest News
+        </a>
+
+    </div>
+
+</nav>
+
+
+<main>
+
+    <a
+        href="index.html"
+        class="back"
+    >
+        ← Latest News par wapas jao
+    </a>
+
+
+    <div id="article-container">
+
+        <div class="not-found">
+
+            <p>
+                Article load ho raha hai...
+            </p>
 
         </div>
 
     </div>
 
-
-    <header>
-
-        <div class="header-inner">
-
-            <div class="logo">
-                Khabar Express
-            </div>
-
-            <div class="tagline">
-                Latest News • India • World • Technology • Sports
-            </div>
-
-        </div>
-
-    </header>
+</main>
 
 
-    <nav>
+<footer>
 
-        <div class="nav-inner">
+    News-Express © 2026
 
-            <a href="index.html">
-                Home
-            </a>
-
-            <a href="index.html">
-                Taaza Khabar
-            </a>
-
-            <a href="index.html">
-                India
-            </a>
-
-            <a href="index.html">
-                World
-            </a>
-
-            <a href="index.html">
-                Sports
-            </a>
-
-            <a href="index.html">
-                Technology
-            </a>
-
-        </div>
-
-    </nav>
+</footer>
 
 
-    <div class="container">
-
-        <article class="article">
-
-            <a
-                href="index.html"
-                class="back"
-            >
-                ← Khabar Express par wapas
-            </a>
+<script>
 
 
-            <div id="content">
+function escapeHTML(value = "") {
 
-                Loading article...
-
-            </div>
-
-        </article>
-
-    </div>
-
-
-    <footer>
-
-        © 2026 Khabar Express.
-        All Rights Reserved.
-
-    </footer>
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
 
-    <script>
+function createSlug(text = "") {
+
+    return String(text)
+        .toLowerCase()
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 120);
+}
 
 
-        document.getElementById(
-            "date"
-        ).textContent =
-            new Date().toLocaleDateString(
-                "hi-IN",
-                {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric"
-                }
-            );
+function getArticleSlug(article) {
+
+    if (article.slug) {
+        return article.slug;
+    }
+
+    return createSlug(
+        article.headline ||
+        article.originalTitle ||
+        article.title ||
+        "news"
+    );
+}
 
 
-        function escapeHTML(value) {
+function formatDate(date) {
 
-            if (
-                value === null ||
-                value === undefined
-            ) {
-                return "";
-            }
+    const parsed =
+        new Date(date);
 
-            return String(value)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+    if (Number.isNaN(parsed.getTime())) {
+        return "Date unavailable";
+    }
+
+    return parsed.toLocaleString(
+        "en-IN",
+        {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
         }
+    );
+}
 
 
-        function getTitle(item) {
+/*
+    Get slug from URL.
 
-            return (
-                item.headline ||
-                item.title ||
-                item.originalTitle ||
-                "Untitled News"
-            );
-        }
+    Example:
+    article.html?slug=india-announces-new-policy
+*/
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
 
-
-        function getSummary(item) {
-
-            return (
-                item.summary ||
-                item.snippet ||
-                item.description ||
-                "Summary available nahi hai."
-            );
-        }
+const requestedSlug =
+    params.get("slug");
 
 
-        function getDate(item) {
-
-            const value =
-                item.publishedAt ||
-                item.date ||
-                item.published ||
-                item.pubDate ||
-                item.addedAt;
-
-            if (!value) {
-                return "";
-            }
-
-            const date =
-                new Date(value);
-
-            if (
-                isNaN(
-                    date.getTime()
-                )
-            ) {
-                return "";
-            }
-
-            return date.toLocaleString(
-                "hi-IN",
-                {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit"
-                }
-            );
-        }
+const container =
+    document.getElementById(
+        "article-container"
+    );
 
 
-        function getSlugFromURL() {
+if (!requestedSlug) {
 
-            const params =
-                new URLSearchParams(
-                    window.location.search
+    showNotFound();
+
+} else {
+
+    loadArticle(requestedSlug);
+
+}
+
+
+function loadArticle(slug) {
+
+    fetch(
+        "news.json?v=" +
+        Date.now()
+    )
+
+        .then(response => {
+
+            if (!response.ok) {
+                throw new Error(
+                    "news.json could not be loaded"
                 );
+            }
 
-            return (
-                params.get("slug") || ""
-            ).trim();
-        }
+            return response.json();
+        })
+
+        .then(data => {
+
+            if (!Array.isArray(data)) {
+                throw new Error(
+                    "Invalid news.json format"
+                );
+            }
 
 
-        async function loadArticle() {
-
-            const content =
-                document.getElementById(
-                    "content"
+            /*
+                First try exact saved slug.
+            */
+            let article =
+                data.find(
+                    item =>
+                        item.slug === slug
                 );
 
 
-            const slug =
-                getSlugFromURL();
+            /*
+                Compatibility:
+                Old article may not have slug.
+            */
+            if (!article) {
+
+                article =
+                    data.find(item =>
+                        getArticleSlug(item) === slug
+                    );
+
+            }
 
 
-            if (!slug) {
+            if (!article) {
 
                 showNotFound();
 
@@ -464,280 +471,263 @@
             }
 
 
-            try {
+            renderArticle(article);
 
-                const response =
-                    await fetch(
-                        "news.json?v=" +
-                        Date.now(),
-                        {
-                            cache: "no-store"
-                        }
-                    );
+        })
 
+        .catch(error => {
 
-                if (!response.ok) {
-                    throw new Error(
-                        "news.json unavailable"
-                    );
-                }
+            console.error(error);
 
-
-                const data =
-                    await response.json();
-
-
-                if (
-                    !Array.isArray(data)
-                ) {
-                    throw new Error(
-                        "Invalid news data"
-                    );
-                }
-
-
-                /*
-                  Find exact permanent slug.
-                */
-                const item =
-                    data.find(
-                        article =>
-                            article.slug === slug
-                    );
-
-
-                if (!item) {
-
-                    showNotFound();
-
-                    return;
-                }
-
-
-                const title =
-                    getTitle(item);
-
-                const summary =
-                    getSummary(item);
-
-                const category =
-                    item.category ||
-                    "News";
-
-                const source =
-                    item.source ||
-                    "News Feed";
-
-                const date =
-                    getDate(item);
-
-
-                let tagsHTML = "";
-
-
-                if (
-                    Array.isArray(
-                        item.tags
-                    ) &&
-                    item.tags.length
-                ) {
-
-                    tagsHTML = `
-
-                        <div class="tags">
-
-                            ${item.tags
-                                .map(tag => `
-                                    <span class="tag">
-                                        #${escapeHTML(tag)}
-                                    </span>
-                                `)
-                                .join("")}
-
-                        </div>
-
-                    `;
-                }
-
-
-                let originalTitleHTML =
-                    "";
-
-
-                if (
-                    item.originalTitle &&
-                    item.originalTitle !== title
-                ) {
-
-                    originalTitleHTML = `
-
-                        <div class="original-title">
-
-                            <strong>
-                                Original headline:
-                            </strong>
-
-                            <br>
-
-                            ${escapeHTML(
-                                item.originalTitle
-                            )}
-
-                        </div>
-
-                    `;
-                }
-
-
-                let sourceButton =
-                    "";
-
-
-                if (item.url) {
-
-                    sourceButton = `
-
-                        <a
-                            class="source-button"
-                            href="${escapeHTML(
-                                item.url
-                            )}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            Original Source पढ़ें →
-                        </a>
-
-                    `;
-                }
-
-
-                content.innerHTML = `
-
-                    <div class="category">
-                        ${escapeHTML(category)}
-                    </div>
-
-
-                    <h1>
-                        ${escapeHTML(title)}
-                    </h1>
-
-
-                    <div class="meta">
-
-                        <span>
-                            📰
-                            ${escapeHTML(source)}
-                        </span>
-
-                        <span>
-                            📅
-                            ${escapeHTML(date)}
-                        </span>
-
-                    </div>
-
-
-                    <div class="summary">
-                        ${escapeHTML(summary)}
-                    </div>
-
-
-                    ${originalTitleHTML}
-
-
-                    ${tagsHTML}
-
-
-                    <div class="source-box">
-
-                        <strong>
-                            Source
-                        </strong>
-
-                        <br>
-
-                        <span
-                            style="
-                                color:#666;
-                                font-size:13px;
-                            "
-                        >
-                            ${escapeHTML(source)}
-                        </span>
-
-                        <br>
-
-                        ${sourceButton}
-
-                    </div>
-
-                `;
-
-
-                document.title =
-                    title +
-                    " - Khabar Express";
-
-
-            } catch (error) {
-
-                console.error(
-                    "Article error:",
-                    error
-                );
-
-                showNotFound();
-
-            }
-
-        }
-
-
-        function showNotFound() {
-
-            document.getElementById(
-                "content"
-            ).innerHTML = `
+            container.innerHTML = `
 
                 <div class="not-found">
 
-                    <h2>
-                        Article nahi mila
-                    </h2>
+                    <h1>
+                        Article load nahi hua
+                    </h1>
 
-                    <p
-                        style="
-                            color:#666;
-                            margin-bottom:20px;
-                        "
-                    >
-                        Ye news available nahi hai
-                        ya URL galat hai.
+                    <p>
+                        News data load karne mein
+                        problem aa gayi.
                     </p>
 
                     <a
                         href="index.html"
-                        style="
-                            color:#c40000;
-                            font-weight:bold;
-                        "
+                        class="source-link"
                     >
-                        ← Latest News par wapas jao
+                        Latest News
                     </a>
 
                 </div>
 
             `;
-        }
+
+        });
+
+}
 
 
-        loadArticle();
+function renderArticle(article) {
 
-    </script>
+    const headline =
+        article.headline ||
+        article.originalTitle ||
+        article.title ||
+        "Untitled News";
+
+
+    const summary =
+        article.summary ||
+        article.description ||
+        article.snippet ||
+        "No summary available.";
+
+
+    const category =
+        article.category ||
+        "Other";
+
+
+    const source =
+        article.source ||
+        "News Feed";
+
+
+    const publishedAt =
+        article.publishedAt ||
+        article.date;
+
+
+    const originalTitle =
+        article.originalTitle ||
+        article.title ||
+        "";
+
+
+    const tags =
+        Array.isArray(article.tags)
+            ? article.tags
+            : [];
+
+
+    let tagsHTML = "";
+
+    if (tags.length > 0) {
+
+        tagsHTML = `
+
+            <div class="tags">
+
+                ${tags
+                    .map(tag => `
+                        <span class="tag">
+                            #${escapeHTML(tag)}
+                        </span>
+                    `)
+                    .join("")
+                }
+
+            </div>
+
+        `;
+
+    }
+
+
+    let sourceHTML = "";
+
+    /*
+        Original RSS article link.
+        We only show it if a valid URL exists.
+    */
+    if (
+        article.url &&
+        /^https?:\/\//i.test(article.url)
+    ) {
+
+        sourceHTML = `
+
+            <div class="source-box">
+
+                <strong>
+                    Original Source
+                </strong>
+
+                <p
+                    style="
+                        color:#666;
+                        font-size:13px;
+                        margin-top:5px;
+                    "
+                >
+                    Full original report ke liye
+                    source website visit karein.
+                </p>
+
+                <a
+                    class="source-link"
+                    href="${escapeHTML(article.url)}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Read Original Source →
+                </a>
+
+            </div>
+
+        `;
+
+    }
+
+
+    container.innerHTML = `
+
+        <article class="article">
+
+            <div class="meta">
+
+                <span class="category">
+                    ${escapeHTML(category)}
+                </span>
+
+                <span>
+                    📰 ${escapeHTML(source)}
+                </span>
+
+                <span>
+                    📅 ${escapeHTML(
+                        formatDate(publishedAt)
+                    )}
+                </span>
+
+            </div>
+
+
+            <h1>
+                ${escapeHTML(headline)}
+            </h1>
+
+
+            <div class="summary">
+
+                ${escapeHTML(summary)}
+
+            </div>
+
+
+            ${tagsHTML}
+
+
+            ${
+                originalTitle &&
+                originalTitle !== headline
+                    ? `
+                        <div
+                            style="
+                                margin-top:20px;
+                                color:#666;
+                                font-size:13px;
+                            "
+                        >
+                            <strong>
+                                Original headline:
+                            </strong>
+
+                            ${escapeHTML(
+                                originalTitle
+                            )}
+                        </div>
+                    `
+                    : ""
+            }
+
+
+            ${sourceHTML}
+
+        </article>
+
+    `;
+
+
+    document.title =
+        headline +
+        " - News-Express";
+
+}
+
+
+function showNotFound() {
+
+    container.innerHTML = `
+
+        <div class="not-found">
+
+            <h1>
+                Article nahi mila
+            </h1>
+
+            <p>
+                Ye news available nahi hai
+                ya URL galat hai.
+            </p>
+
+            <a
+                href="index.html"
+                class="source-link"
+            >
+                ← Latest News par wapas jao
+            </a>
+
+        </div>
+
+    `;
+
+}
+
+
+</script>
 
 </body>
-
 </html>
 ```
