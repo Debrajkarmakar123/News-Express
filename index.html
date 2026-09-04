@@ -1,17 +1,25 @@
+```html
 <!DOCTYPE html>
 <html lang="hi">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Khabar Express - Latest News</title>
 
     <style>
+
         :root {
             --red: #c40000;
             --dark: #111;
             --gray: #666;
-            --light: #f5f5f5;
+            --light: #f4f4f4;
             --border: #ddd;
             --white: #fff;
         }
@@ -33,9 +41,8 @@
             text-decoration: none;
         }
 
-        /* TOP BAR */
         .topbar {
-            background: var(--dark);
+            background: #111;
             color: white;
             padding: 8px 20px;
             font-size: 13px;
@@ -46,19 +53,12 @@
             margin: auto;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-        }
-
-        .live {
-            color: #fff;
-            font-weight: bold;
         }
 
         .live span {
             color: var(--red);
         }
 
-        /* HEADER */
         header {
             background: white;
             border-bottom: 4px solid var(--red);
@@ -68,29 +68,24 @@
             max-width: 1200px;
             margin: auto;
             padding: 22px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
         .logo {
-            font-family: Georgia, "Times New Roman", serif;
+            font-family: Georgia, serif;
             font-size: 42px;
             font-weight: bold;
             color: var(--red);
-            line-height: 1;
         }
 
         .tagline {
-            margin-top: 7px;
+            margin-top: 6px;
+            color: #666;
             font-size: 12px;
-            color: var(--gray);
             letter-spacing: 1px;
         }
 
-        /* NAV */
         nav {
-            background: var(--dark);
+            background: #111;
         }
 
         .nav-inner {
@@ -112,7 +107,6 @@
             background: var(--red);
         }
 
-        /* MAIN */
         .container {
             max-width: 1200px;
             margin: 30px auto;
@@ -122,44 +116,37 @@
             gap: 30px;
         }
 
-        /* SECTION TITLE */
         .section-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 3px solid var(--dark);
+            border-bottom: 3px solid #111;
             margin-bottom: 20px;
         }
 
         .section-title h1 {
-            font-family: Georgia, "Times New Roman", serif;
-            font-size: 26px;
-            padding-bottom: 8px;
+            font-family: Georgia, serif;
+            font-size: 27px;
+            padding-bottom: 9px;
         }
 
-        .section-title h1::first-letter {
-            color: var(--red);
-        }
-
-        /* NEWS CARD */
         .news-card {
+            display: block;
             background: white;
             border: 1px solid var(--border);
             margin-bottom: 18px;
             padding: 22px;
+            cursor: pointer;
             transition: 0.2s;
         }
 
         .news-card:hover {
-            border-color: #aaa;
             transform: translateY(-2px);
+            border-color: #999;
         }
 
         .news-meta {
             display: flex;
-            gap: 15px;
             flex-wrap: wrap;
-            color: var(--gray);
+            gap: 12px;
+            color: #666;
             font-size: 12px;
             margin-bottom: 10px;
         }
@@ -171,13 +158,13 @@
         }
 
         .news-card h2 {
-            font-family: Georgia, "Times New Roman", serif;
+            font-family: Georgia, serif;
             font-size: 25px;
-            line-height: 1.25;
+            line-height: 1.3;
             margin-bottom: 12px;
         }
 
-        .news-card h2:hover {
+        .news-card:hover h2 {
             color: var(--red);
         }
 
@@ -185,17 +172,16 @@
             color: #444;
             font-size: 15px;
             line-height: 1.7;
-            margin-bottom: 15px;
         }
 
         .read-more {
             display: inline-block;
+            margin-top: 14px;
             color: var(--red);
-            font-size: 13px;
             font-weight: bold;
+            font-size: 13px;
         }
 
-        /* SIDEBAR */
         .sidebar-box {
             background: white;
             border: 1px solid var(--border);
@@ -203,10 +189,9 @@
         }
 
         .sidebar-title {
-            background: var(--dark);
+            background: #111;
             color: white;
             padding: 12px 15px;
-            font-size: 16px;
             font-weight: bold;
         }
 
@@ -222,34 +207,21 @@
             color: var(--red);
         }
 
-        /* LOADING */
-        .loading {
+        .loading,
+        .empty,
+        .error {
             background: white;
-            border: 1px solid var(--border);
             padding: 40px;
             text-align: center;
-            color: var(--gray);
+            border: 1px solid var(--border);
         }
 
         .error {
-            background: white;
-            border: 1px solid #e5b5b5;
-            padding: 30px;
-            text-align: center;
             color: var(--red);
         }
 
-        .empty {
-            background: white;
-            border: 1px solid var(--border);
-            padding: 40px;
-            text-align: center;
-            color: var(--gray);
-        }
-
-        /* FOOTER */
         footer {
-            background: var(--dark);
+            background: #111;
             color: #aaa;
             text-align: center;
             padding: 35px 20px;
@@ -266,8 +238,8 @@
             font-size: 12px;
         }
 
-        /* MOBILE */
         @media (max-width: 800px) {
+
             .container {
                 grid-template-columns: 1fr;
             }
@@ -276,129 +248,216 @@
                 font-size: 32px;
             }
 
-            .header-inner {
-                padding: 18px 15px;
-            }
-
             .news-card h2 {
                 font-size: 21px;
             }
 
             .container {
                 padding: 0 12px;
-                margin-top: 20px;
             }
 
-            .nav-inner a {
-                padding: 12px 15px;
-            }
         }
+
     </style>
+
 </head>
+
 
 <body>
 
-    <!-- TOP BAR -->
     <div class="topbar">
+
         <div class="topbar-inner">
-            <div id="current-date">Loading...</div>
-            <div class="live"><span>●</span> LIVE NEWS</div>
+
+            <div id="current-date">
+                Loading...
+            </div>
+
+            <div class="live">
+                <span>●</span> LIVE NEWS
+            </div>
+
         </div>
+
     </div>
 
-    <!-- HEADER -->
+
     <header>
+
         <div class="header-inner">
-            <div>
-                <div class="logo">Khabar Express</div>
-                <div class="tagline">Latest News • India • World • Technology • Sports</div>
+
+            <div class="logo">
+                Khabar Express
             </div>
+
+            <div class="tagline">
+                Latest News • India • World • Technology • Sports
+            </div>
+
         </div>
+
     </header>
 
-    <!-- NAVIGATION -->
+
     <nav>
+
         <div class="nav-inner">
-            <a href="#">Home</a>
-            <a href="#">Taaza Khabar</a>
-            <a href="#">India</a>
-            <a href="#">World</a>
-            <a href="#">Sports</a>
-            <a href="#">Technology</a>
-            <a href="#">Entertainment</a>
+
+            <a href="index.html">
+                Home
+            </a>
+
+            <a href="#">
+                Taaza Khabar
+            </a>
+
+            <a href="#">
+                India
+            </a>
+
+            <a href="#">
+                World
+            </a>
+
+            <a href="#">
+                Sports
+            </a>
+
+            <a href="#">
+                Technology
+            </a>
+
+            <a href="#">
+                Entertainment
+            </a>
+
         </div>
+
     </nav>
 
-    <!-- CONTENT -->
+
     <div class="container">
 
-        <!-- NEWS -->
         <main>
+
             <div class="section-title">
-                <h1>Taaza Khabrein</h1>
+
+                <h1>
+                    Taaza Khabrein
+                </h1>
+
             </div>
 
+
             <div id="news-list">
+
                 <div class="loading">
                     Khabrein load ho rahi hain...
                 </div>
+
             </div>
+
         </main>
 
-        <!-- SIDEBAR -->
+
         <aside>
 
             <div class="sidebar-box">
+
                 <div class="sidebar-title">
                     🔥 Trending
                 </div>
 
                 <div id="trending-list">
-                    <div class="trending-item">Latest News</div>
-                    <div class="trending-item">India News</div>
-                    <div class="trending-item">Technology</div>
-                    <div class="trending-item">Sports</div>
-                    <div class="trending-item">Entertainment</div>
+
+                    <div class="trending-item">
+                        Latest News
+                    </div>
+
+                    <div class="trending-item">
+                        India News
+                    </div>
+
+                    <div class="trending-item">
+                        Technology
+                    </div>
+
+                    <div class="trending-item">
+                        Sports
+                    </div>
+
+                    <div class="trending-item">
+                        Entertainment
+                    </div>
+
                 </div>
+
             </div>
 
+
             <div class="sidebar-box">
+
                 <div class="sidebar-title">
                     About Khabar Express
                 </div>
 
-                <div style="padding:15px; font-size:13px; line-height:1.7; color:#555;">
-                    Latest news automatically collected from trusted news feeds
-                    and processed for easier reading.
+                <div
+                    style="
+                        padding:15px;
+                        font-size:13px;
+                        line-height:1.7;
+                        color:#555;
+                    "
+                >
+                    Latest news automatically collected
+                    from trusted news feeds and processed
+                    for easier reading.
                 </div>
+
             </div>
 
         </aside>
 
     </div>
 
-    <!-- FOOTER -->
+
     <footer>
-        <strong>Khabar Express</strong>
-        <p>© 2026 Khabar Express. All Rights Reserved.</p>
+
+        <strong>
+            Khabar Express
+        </strong>
+
+        <p>
+            © 2026 Khabar Express. All Rights Reserved.
+        </p>
+
     </footer>
 
 
     <script>
 
-        // DATE
-        document.getElementById("current-date").textContent =
-            new Date().toLocaleDateString("hi-IN", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric"
-            });
+        document.getElementById(
+            "current-date"
+        ).textContent =
+            new Date().toLocaleDateString(
+                "hi-IN",
+                {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric"
+                }
+            );
 
 
-        // SAFE HTML
         function escapeHTML(value) {
-            if (value === null || value === undefined) return "";
+
+            if (
+                value === null ||
+                value === undefined
+            ) {
+                return "";
+            }
 
             return String(value)
                 .replace(/&/g, "&amp;")
@@ -409,8 +468,8 @@
         }
 
 
-        // TITLE
         function getTitle(item) {
+
             return (
                 item.headline ||
                 item.title ||
@@ -420,8 +479,8 @@
         }
 
 
-        // SUMMARY
         function getSummary(item) {
+
             return (
                 item.summary ||
                 item.snippet ||
@@ -431,68 +490,110 @@
         }
 
 
-        // DATE
         function getDate(item) {
-            const date =
+
+            const value =
                 item.publishedAt ||
                 item.date ||
                 item.published ||
                 item.pubDate ||
                 item.addedAt;
 
-            if (!date) return "";
-
-            const parsed = new Date(date);
-
-            if (isNaN(parsed.getTime())) {
-                return escapeHTML(date);
+            if (!value) {
+                return "";
             }
 
-            return parsed.toLocaleDateString("hi-IN", {
-                day: "numeric",
-                month: "short",
-                year: "numeric"
-            });
+            const date =
+                new Date(value);
+
+            if (
+                isNaN(
+                    date.getTime()
+                )
+            ) {
+                return "";
+            }
+
+            return date.toLocaleDateString(
+                "hi-IN",
+                {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric"
+                }
+            );
         }
 
 
-        // CATEGORY
         function getCategory(item) {
-            return item.category || "News";
+
+            return (
+                item.category ||
+                "News"
+            );
         }
 
 
-        // SOURCE
         function getSource(item) {
-            return item.source || "News Feed";
+
+            return (
+                item.source ||
+                "News Feed"
+            );
         }
 
 
-        // LOAD NEWS
+        /*
+          IMPORTANT:
+          Article is opened using SLUG,
+          not random ID.
+        */
+        function openArticle(slug) {
+
+            if (!slug) {
+                return;
+            }
+
+            window.location.href =
+                "article.html?slug=" +
+                encodeURIComponent(slug);
+        }
+
+
         async function loadNews() {
 
-            const newsList = document.getElementById("news-list");
+            const newsList =
+                document.getElementById(
+                    "news-list"
+                );
 
             try {
 
-                /*
-                    ?v=Date.now() prevents browser/GitHub Pages
-                    from showing an old cached news.json
-                */
-                const response = await fetch(
-                    "news.json?v=" + Date.now(),
-                    {
-                        cache: "no-store"
-                    }
-                );
+                const response =
+                    await fetch(
+                        "news.json?v=" +
+                        Date.now(),
+                        {
+                            cache: "no-store"
+                        }
+                    );
+
 
                 if (!response.ok) {
-                    throw new Error("news.json not found");
+                    throw new Error(
+                        "news.json not found"
+                    );
                 }
 
-                const data = await response.json();
 
-                if (!Array.isArray(data) || data.length === 0) {
+                const data =
+                    await response.json();
+
+
+                if (
+                    !Array.isArray(data) ||
+                    data.length === 0
+                ) {
 
                     newsList.innerHTML = `
                         <div class="empty">
@@ -504,25 +605,19 @@
                 }
 
 
-                // Newest first
-                data.sort((a, b) => {
-
-                    const dateA = new Date(
-                        a.publishedAt ||
-                        a.addedAt ||
-                        a.date ||
-                        0
-                    );
-
-                    const dateB = new Date(
-                        b.publishedAt ||
-                        b.addedAt ||
-                        b.date ||
-                        0
-                    );
-
-                    return dateB - dateA;
-                });
+                data.sort(
+                    (a, b) =>
+                        new Date(
+                            b.publishedAt ||
+                            b.addedAt ||
+                            0
+                        ) -
+                        new Date(
+                            a.publishedAt ||
+                            a.addedAt ||
+                            0
+                        )
+                );
 
 
                 let html = "";
@@ -530,17 +625,49 @@
 
                 data.forEach(item => {
 
-                    const title = escapeHTML(getTitle(item));
-                    const summary = escapeHTML(getSummary(item));
-                    const category = escapeHTML(getCategory(item));
-                    const source = escapeHTML(getSource(item));
-                    const date = getDate(item);
+                    const title =
+                        escapeHTML(
+                            getTitle(item)
+                        );
 
-                    const url = item.url || "";
+                    const summary =
+                        escapeHTML(
+                            getSummary(item)
+                        );
+
+                    const category =
+                        escapeHTML(
+                            getCategory(item)
+                        );
+
+                    const source =
+                        escapeHTML(
+                            getSource(item)
+                        );
+
+                    const date =
+                        getDate(item);
+
+
+                    /*
+                      Fallback for old articles
+                      that don't have a slug yet.
+                    */
+                    const slug =
+                        item.slug ||
+                        createFallbackSlug(
+                            getTitle(item)
+                        );
 
 
                     html += `
-                        <article class="news-card">
+
+                        <article
+                            class="news-card"
+                            onclick="openArticle(
+                                '${escapeJS(slug)}'
+                            )"
+                        >
 
                             <div class="news-meta">
 
@@ -558,88 +685,154 @@
 
                             </div>
 
+
                             <h2>
                                 ${title}
                             </h2>
+
 
                             <p>
                                 ${summary}
                             </p>
 
-                            ${
-                                url
-                                ? `
-                                    <a
-                                        class="read-more"
-                                        href="${escapeHTML(url)}"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        पूरी खबर पढ़ें →
-                                    </a>
-                                `
-                                : ""
-                            }
+
+                            <span class="read-more">
+                                पूरी खबर पढ़ें →
+                            </span>
 
                         </article>
+
                     `;
                 });
 
 
-                newsList.innerHTML = html;
+                newsList.innerHTML =
+                    html;
 
 
-                // TRENDING
+                /*
+                  Trending
+                */
                 const trendingList =
-                    document.getElementById("trending-list");
+                    document.getElementById(
+                        "trending-list"
+                    );
 
-                const trendingNews = [...data]
+
+                const trending =
+                    [...data]
                     .sort(
                         (a, b) =>
-                            (Number(b.trendingScore) || 0) -
-                            (Number(a.trendingScore) || 0)
+                            (Number(
+                                b.trendingScore
+                            ) || 0) -
+                            (Number(
+                                a.trendingScore
+                            ) || 0)
                     )
                     .slice(0, 5);
 
 
-                if (trendingNews.length > 0) {
+                if (trending.length) {
 
                     trendingList.innerHTML =
-                        trendingNews
-                            .map(item => `
+                        trending
+                        .map(item => {
+
+                            const slug =
+                                item.slug ||
+                                createFallbackSlug(
+                                    getTitle(item)
+                                );
+
+                            return `
+
                                 <a
                                     class="trending-item"
-                                    href="${escapeHTML(item.url || "#")}"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                    href="article.html?slug=${encodeURIComponent(slug)}"
                                 >
-                                    🔥 ${escapeHTML(getTitle(item))}
+                                    🔥
+                                    ${escapeHTML(
+                                        getTitle(item)
+                                    )}
                                 </a>
-                            `)
-                            .join("");
+
+                            `;
+
+                        })
+                        .join("");
                 }
+
 
             } catch (error) {
 
-                console.error("News loading error:", error);
+                console.error(
+                    "News loading error:",
+                    error
+                );
+
 
                 newsList.innerHTML = `
+
                     <div class="error">
-                        <strong>News load nahi ho paayi.</strong>
+
+                        <strong>
+                            News load nahi ho paayi.
+                        </strong>
+
                         <br><br>
-                        Please check karo ki
-                        <strong>news.json</strong>
-                        GitHub repository mein available hai.
+
+                        news.json check karo.
+
                     </div>
+
                 `;
             }
         }
 
 
-        // START
+        /*
+          Used only for old news before
+          the backend migration runs.
+        */
+        function createFallbackSlug(text) {
+
+            return String(text || "news")
+                .toLowerCase()
+                .normalize("NFKD")
+                .replace(
+                    /[\u0300-\u036f]/g,
+                    ""
+                )
+                .replace(
+                    /[^a-z0-9]+/g,
+                    "-"
+                )
+                .replace(
+                    /^-+|-+$/g,
+                    ""
+                )
+                .slice(0, 100);
+        }
+
+
+        /*
+          Prevent quotes in a slug from
+          breaking onclick HTML.
+        */
+        function escapeJS(value) {
+
+            return String(value)
+                .replace(/\\/g, "\\\\")
+                .replace(/'/g, "\\'");
+        }
+
+
         loadNews();
 
     </script>
 
 </body>
+
 </html>
+```
