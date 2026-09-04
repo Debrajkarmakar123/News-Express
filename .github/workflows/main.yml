@@ -1,50 +1,1144 @@
-name: Update News
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>News Express Admin</title>
 
-on:
-  workflow_dispatch:
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
 
-  schedule:
-    - cron: "*/30 * * * *"
+    body {
+      background: #f4f6f8;
+      color: #111827;
+      padding: 20px;
+    }
 
-permissions:
-  contents: write
+    .container {
+      max-width: 1100px;
+      margin: auto;
+    }
 
-jobs:
+    header {
+      background: #111827;
+      color: white;
+      padding: 22px;
+      border-radius: 14px;
+      margin-bottom: 20px;
+    }
 
-  update-news:
+    header h1 {
+      margin-bottom: 7px;
+    }
 
-    runs-on: ubuntu-latest
+    .repo {
+      margin-top: 8px;
+      opacity: .8;
+      word-break: break-all;
+    }
 
-    steps:
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 3px 12px rgba(0,0,0,.08);
+      margin-bottom: 20px;
+    }
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+    .card h2 {
+      margin-bottom: 15px;
+    }
 
-        with:
-          node-version: 20
-          cache: npm
+    .card h3 {
+      margin-bottom: 10px;
+      color: #6b7280;
+      font-size: 15px;
+    }
 
-      - name: Install dependencies
-        run: npm ci
+    .value {
+      font-size: 28px;
+      font-weight: bold;
+    }
 
-      - name: Generate news
-        run: npm run update-news
+    button {
+      border: 0;
+      padding: 11px 16px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-weight: bold;
+      background: #111827;
+      color: white;
+      margin-top: 10px;
+    }
 
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    button:hover {
+      opacity: .88;
+    }
 
-      - name: Save news archive
-        run: |
+    .progress-box {
+      margin-top: 15px;
+      background: #e5e7eb;
+      height: 20px;
+      border-radius: 20px;
+      overflow: hidden;
+    }
 
-          git config user.name "github-actions[bot]"
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: #2563eb;
+      transition: width .4s ease;
+    }
 
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+    .progress-text {
+      margin-top: 8px;
+      font-weight: bold;
+    }
 
-          git add news.json
+    .status {
+      margin-top: 10px;
+      font-weight: bold;
+    }
 
-          git diff --cached --quiet || git commit -m "Update news"
+    .success {
+      color: #15803d;
+    }
 
-          git push
+    .error {
+      color: #dc2626;
+    }
+
+    .warning {
+      color: #d97706;
+    }
+
+    .info {
+      color: #2563eb;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .log {
+      background: #111827;
+      color: #d1d5db;
+      padding: 15px;
+      border-radius: 10px;
+      max-height: 250px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .article-title {
+      font-size: 16px;
+      font-weight: bold;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+
+  <header>
+    <h1>📰 News Express Admin</h1>
+    <p>News automation control panel</p>
+
+    <div class="repo">
+      GitHub: Debrajkarmakar123 / News-Express
+    </div>
+  </header>
+
+
+  <!-- STATS -->
+
+  <div class="grid">
+
+    <div class="card">
+      <h3>Total Articles</h3>
+      <div class="value" id="totalArticles">0</div>
+    </div>
+
+    <div class="card">
+      <h3>Latest Article</h3>
+      <div class="article-title" id="latestArticle">
+        Loading...
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Articles Per Run</h3>
+      <div class="value" id="articlesPerRun">
+        10
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Next Scheduled Update</h3>
+      <div id="nextUpdate">
+        Calculating...
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- GITHUB ACTIONS -->
+
+  <div class="card">
+
+    <h2>⚙️ GitHub Actions Progress</h2>
+
+    <div id="workflowStatus" class="status info">
+      Checking GitHub Actions...
+    </div>
+
+    <div class="progress-box">
+      <div
+        id="progressBar"
+        class="progress-bar">
+      </div>
+    </div>
+
+    <div
+      id="progressText"
+      class="progress-text">
+      0%
+    </div>
+
+    <button onclick="checkWorkflow()">
+      🔄 Refresh
+    </button>
+
+  </div>
+
+
+  <!-- CONTROLS -->
+
+  <div class="grid">
+
+    <div class="card">
+
+      <h3>🔄 News Update</h3>
+
+      <p>
+        GitHub Actions automatically runs
+        the news updater every 30 minutes.
+      </p>
+
+      <button onclick="checkWorkflow()">
+        Check Latest Run
+      </button>
+
+    </div>
+
+
+    <div class="card">
+
+      <h3>🤖 Auto Update</h3>
+
+      <div class="switch-row">
+
+        <span id="autoStatus">
+          ON
+        </span>
+
+        <input
+          type="checkbox"
+          id="autoToggle"
+          checked
+          onchange="toggleAutoUpdate()"
+        >
+
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h3>📰 Articles Per Run</h3>
+
+      <input
+        type="number"
+        id="articleCount"
+        min="1"
+        max="10"
+        value="10"
+      >
+
+      <button onclick="saveSettings()">
+        Save
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- SYSTEM STATUS -->
+
+  <div class="card">
+
+    <h2>🟢 System Status</h2>
+
+    <p
+      id="githubStatus"
+      class="status">
+      Checking GitHub...
+    </p>
+
+    <p
+      id="newsStatus"
+      class="status">
+      Checking news.json...
+    </p>
+
+    <p
+      id="geminiStatus"
+      class="status info">
+      Gemini status will be determined
+      from the latest workflow.
+    </p>
+
+  </div>
+
+
+  <!-- ACTIVITY LOG -->
+
+  <div class="card">
+
+    <h2>📋 Activity Log</h2>
+
+    <div
+      class="log"
+      id="activityLog">
+      Starting admin panel...
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/*
+==========================================================
+GITHUB CONFIG
+==========================================================
+*/
+
+const GITHUB_OWNER =
+  "Debrajkarmakar123";
+
+const GITHUB_REPO =
+  "News-Express";
+
+/*
+IMPORTANT:
+Your workflow is:
+.github/workflows/main.yml
+*/
+
+const WORKFLOW_FILE =
+  "main.yml";
+
+
+/*
+==========================================================
+NEWS FILE
+==========================================================
+*/
+
+const NEWS_FILE =
+  `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/news.json`;
+
+
+/*
+==========================================================
+ELEMENTS
+==========================================================
+*/
+
+const totalArticles =
+  document.getElementById("totalArticles");
+
+const latestArticle =
+  document.getElementById("latestArticle");
+
+const articlesPerRun =
+  document.getElementById("articlesPerRun");
+
+const nextUpdate =
+  document.getElementById("nextUpdate");
+
+const workflowStatus =
+  document.getElementById("workflowStatus");
+
+const progressBar =
+  document.getElementById("progressBar");
+
+const progressText =
+  document.getElementById("progressText");
+
+const githubStatus =
+  document.getElementById("githubStatus");
+
+const newsStatus =
+  document.getElementById("newsStatus");
+
+const geminiStatus =
+  document.getElementById("geminiStatus");
+
+const activityLog =
+  document.getElementById("activityLog");
+
+
+/*
+==========================================================
+LOG FUNCTION
+==========================================================
+*/
+
+function log(message) {
+
+  const time =
+    new Date().toLocaleTimeString();
+
+  activityLog.innerHTML +=
+    `<div>[${time}] ${message}</div>`;
+
+  activityLog.scrollTop =
+    activityLog.scrollHeight;
+}
+
+
+/*
+==========================================================
+LOAD NEWS
+==========================================================
+*/
+
+async function loadNews() {
+
+  try {
+
+    const response =
+      await fetch(
+        NEWS_FILE + "?t=" + Date.now()
+      );
+
+    if (!response.ok) {
+      throw new Error(
+        "HTTP " + response.status
+      );
+    }
+
+    const data =
+      await response.json();
+
+    /*
+    Support both:
+    [
+      {...}
+    ]
+
+    and
+
+    {
+      articles: [...]
+    }
+    */
+
+    const articles =
+      Array.isArray(data)
+        ? data
+        : Array.isArray(data.articles)
+          ? data.articles
+          : [];
+
+    totalArticles.textContent =
+      articles.length;
+
+    if (articles.length > 0) {
+
+      const latest =
+        articles[0];
+
+      latestArticle.textContent =
+        latest.title ||
+        latest.headline ||
+        "Untitled article";
+
+    } else {
+
+      latestArticle.textContent =
+        "No articles found";
+
+    }
+
+    newsStatus.textContent =
+      "🟢 news.json loaded successfully";
+
+    newsStatus.className =
+      "status success";
+
+    log(
+      `Loaded ${articles.length} articles`
+    );
+
+  } catch (error) {
+
+    newsStatus.textContent =
+      "🔴 Unable to load news.json: " +
+      error.message;
+
+    newsStatus.className =
+      "status error";
+
+    log(
+      "news.json error: " +
+      error.message
+    );
+
+  }
+
+}
+
+
+/*
+==========================================================
+CHECK GITHUB ACTIONS
+==========================================================
+*/
+
+async function checkWorkflow() {
+
+  workflowStatus.textContent =
+    "Checking GitHub Actions...";
+
+  workflowStatus.className =
+    "status info";
+
+  progressBar.style.width =
+    "0%";
+
+  progressText.textContent =
+    "0%";
+
+  try {
+
+    /*
+    Exact GitHub API endpoint
+    */
+
+    const apiURL =
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/${WORKFLOW_FILE}/runs?per_page=1`;
+
+    log(
+      "Checking workflow: " +
+      WORKFLOW_FILE
+    );
+
+    const response =
+      await fetch(
+        apiURL,
+        {
+          headers: {
+            "Accept":
+              "application/vnd.github+json"
+          }
+        }
+      );
+
+    if (!response.ok) {
+
+      if (response.status === 404) {
+
+        throw new Error(
+          "404 - Repository or main.yml workflow not found"
+        );
+
+      }
+
+      if (response.status === 403) {
+
+        throw new Error(
+          "403 - GitHub API access denied"
+        );
+
+      }
+
+      throw new Error(
+        "GitHub API " +
+        response.status
+      );
+
+    }
+
+    const data =
+      await response.json();
+
+    githubStatus.textContent =
+      "🟢 GitHub API connected";
+
+    githubStatus.className =
+      "status success";
+
+
+    /*
+    No workflow runs
+    */
+
+    if (
+      !data.workflow_runs ||
+      data.workflow_runs.length === 0
+    ) {
+
+      workflowStatus.textContent =
+        "⚠️ No workflow runs found";
+
+      workflowStatus.className =
+        "status warning";
+
+      progressBar.style.width =
+        "0%";
+
+      progressText.textContent =
+        "0%";
+
+      log(
+        "No workflow runs found"
+      );
+
+      return;
+    }
+
+
+    /*
+    Latest workflow
+    */
+
+    const run =
+      data.workflow_runs[0];
+
+    let percent = 0;
+
+
+    if (run.status === "completed") {
+
+      percent = 100;
+
+    } else if (
+      run.status === "in_progress"
+    ) {
+
+      percent = 50;
+
+    } else if (
+      run.status === "queued"
+    ) {
+
+      percent = 10;
+
+    } else {
+
+      percent = 10;
+
+    }
+
+
+    progressBar.style.width =
+      percent + "%";
+
+    progressText.textContent =
+      percent + "%";
+
+
+    workflowStatus.textContent =
+      "Status: " +
+      run.status +
+      (
+        run.conclusion
+          ? " • " + run.conclusion
+          : ""
+      );
+
+
+    if (
+      run.conclusion === "success"
+    ) {
+
+      workflowStatus.className =
+        "status success";
+
+      geminiStatus.textContent =
+        "🟢 Latest workflow completed successfully";
+
+      geminiStatus.className =
+        "status success";
+
+    }
+
+    else if (
+      run.conclusion === "failure"
+    ) {
+
+      workflowStatus.className =
+        "status error";
+
+      geminiStatus.textContent =
+        "🔴 Latest workflow failed. Check GitHub Actions logs.";
+
+      geminiStatus.className =
+        "status error";
+
+    }
+
+    else {
+
+      workflowStatus.className =
+        "status info";
+
+      geminiStatus.textContent =
+        "🟡 Workflow is currently running";
+
+      geminiStatus.className =
+        "status warning";
+
+    }
+
+
+    log(
+      "Latest workflow: " +
+      run.status +
+      (
+        run.conclusion
+          ? " / " + run.conclusion
+          : ""
+      )
+    );
+
+
+    /*
+    Load individual jobs
+    */
+
+    await loadJobs(run.id);
+
+
+  } catch (error) {
+
+    workflowStatus.textContent =
+      "⚠️ Unable to read GitHub Actions";
+
+    workflowStatus.className =
+      "status error";
+
+    githubStatus.textContent =
+      "🔴 " + error.message;
+
+    githubStatus.className =
+      "status error";
+
+    progressBar.style.width =
+      "0%";
+
+    progressText.textContent =
+      "0%";
+
+    log(
+      "GitHub error: " +
+      error.message
+    );
+
+  }
+
+}
+
+
+/*
+==========================================================
+LOAD WORKFLOW JOBS
+==========================================================
+*/
+
+async function loadJobs(runId) {
+
+  try {
+
+    const jobsURL =
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs/${runId}/jobs?per_page=20`;
+
+    const response =
+      await fetch(
+        jobsURL,
+        {
+          headers: {
+            "Accept":
+              "application/vnd.github+json"
+          }
+        }
+      );
+
+    if (!response.ok) {
+      return;
+    }
+
+    const data =
+      await response.json();
+
+    if (
+      !data.jobs ||
+      data.jobs.length === 0
+    ) {
+      return;
+    }
+
+    const job =
+      data.jobs[0];
+
+    const steps =
+      job.steps || [];
+
+    if (steps.length === 0) {
+      return;
+    }
+
+
+    /*
+    Count completed steps
+    */
+
+    const completedSteps =
+      steps.filter(
+        step =>
+          step.status === "completed"
+      ).length;
+
+    const runningSteps =
+      steps.filter(
+        step =>
+          step.status === "in_progress"
+      ).length;
+
+
+    let percent =
+      Math.round(
+        (
+          completedSteps /
+          steps.length
+        ) * 100
+      );
+
+
+    if (
+      runningSteps > 0 &&
+      percent < 95
+    ) {
+      percent += 5;
+    }
+
+
+    progressBar.style.width =
+      percent + "%";
+
+    progressText.textContent =
+      percent + "%";
+
+
+    /*
+    Current running step
+    */
+
+    const currentStep =
+      steps.find(
+        step =>
+          step.status === "in_progress"
+      );
+
+    if (currentStep) {
+
+      workflowStatus.textContent =
+        "🔄 Running: " +
+        currentStep.name;
+
+    }
+
+
+  } catch (error) {
+
+    log(
+      "Could not load workflow jobs"
+    );
+
+  }
+
+}
+
+
+/*
+==========================================================
+AUTO UPDATE
+==========================================================
+*/
+
+function toggleAutoUpdate() {
+
+  const toggle =
+    document.getElementById(
+      "autoToggle"
+    );
+
+  const enabled =
+    toggle.checked;
+
+  localStorage.setItem(
+    "newsAutoUpdate",
+    enabled
+  );
+
+  document.getElementById(
+    "autoStatus"
+  ).textContent =
+    enabled ? "ON" : "OFF";
+
+  log(
+    "Auto update: " +
+    (enabled ? "ON" : "OFF")
+  );
+
+}
+
+
+/*
+==========================================================
+SAVE SETTINGS
+==========================================================
+*/
+
+function saveSettings() {
+
+  const count =
+    Number(
+      document.getElementById(
+        "articleCount"
+      ).value
+    );
+
+
+  if (
+    !Number.isInteger(count) ||
+    count < 1 ||
+    count > 10
+  ) {
+
+    alert(
+      "Articles per run must be between 1 and 10."
+    );
+
+    return;
+  }
+
+
+  localStorage.setItem(
+    "articlesPerRun",
+    count
+  );
+
+  articlesPerRun.textContent =
+    count;
+
+  log(
+    "Articles per run saved: " +
+    count
+  );
+
+}
+
+
+/*
+==========================================================
+NEXT UPDATE TIME
+==========================================================
+*/
+
+function updateNextTime() {
+
+  const now =
+    new Date();
+
+  const minutes =
+    now.getMinutes();
+
+  const nextSlot =
+    Math.ceil(
+      (minutes + 1) / 30
+    ) * 30;
+
+  const next =
+    new Date(now);
+
+
+  if (nextSlot >= 60) {
+
+    next.setHours(
+      next.getHours() + 1
+    );
+
+    next.setMinutes(0);
+
+  } else {
+
+    next.setMinutes(
+      nextSlot
+    );
+
+  }
+
+
+  next.setSeconds(0);
+  next.setMilliseconds(0);
+
+
+  nextUpdate.textContent =
+    next.toLocaleTimeString();
+
+}
+
+
+/*
+==========================================================
+LOAD SETTINGS
+==========================================================
+*/
+
+function loadSettings() {
+
+  const savedCount =
+    localStorage.getItem(
+      "articlesPerRun"
+    );
+
+  if (savedCount) {
+
+    document.getElementById(
+      "articleCount"
+    ).value =
+      savedCount;
+
+    articlesPerRun.textContent =
+      savedCount;
+
+  }
+
+
+  const savedAuto =
+    localStorage.getItem(
+      "newsAutoUpdate"
+    );
+
+  if (savedAuto !== null) {
+
+    const enabled =
+      savedAuto === "true";
+
+    document.getElementById(
+      "autoToggle"
+    ).checked =
+      enabled;
+
+    document.getElementById(
+      "autoStatus"
+    ).textContent =
+      enabled ? "ON" : "OFF";
+
+  }
+
+}
+
+
+/*
+==========================================================
+START ADMIN PANEL
+==========================================================
+*/
+
+loadSettings();
+
+loadNews();
+
+checkWorkflow();
+
+updateNextTime();
+
+
+/*
+Refresh workflow every 10 seconds
+*/
+
+setInterval(
+  checkWorkflow,
+  10000
+);
+
+
+/*
+Refresh news every 60 seconds
+*/
+
+setInterval(
+  loadNews,
+  60000
+);
+
+
+/*
+Update next scheduled time
+*/
+
+setInterval(
+  updateNextTime,
+  60000
+);
+
+</script>
+
+</body>
+</html>
