@@ -1,791 +1,645 @@
-```html
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>News-Express | Latest News</title>
-  <meta name="description" content="Latest breaking news, India, technology, sports and entertainment news.">
-
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f5f6f8;
-      color: #171717;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    /* TOP BAR */
-    .topbar {
-      background: #111;
-      color: #fff;
-      font-size: 13px;
-      padding: 8px 0;
-    }
-
-    .topbar-inner {
-      max-width: 1180px;
-      margin: auto;
-      padding: 0 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    /* HEADER */
-    header {
-      background: #fff;
-      border-bottom: 1px solid #ddd;
-      position: sticky;
-      top: 0;
-      z-index: 20;
-    }
-
-    .header-inner {
-      max-width: 1180px;
-      margin: auto;
-      min-height: 76px;
-      padding: 0 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 30px;
-    }
-
-    .logo {
-      font-size: 30px;
-      font-weight: 900;
-      letter-spacing: -1.5px;
-      white-space: nowrap;
-    }
-
-    .logo span {
-      color: #d71920;
-    }
-
-    .date {
-      color: #777;
-      font-size: 13px;
-    }
-
-    /* NAV */
-    nav {
-      background: #fff;
-      border-bottom: 1px solid #ddd;
-    }
-
-    .nav-inner {
-      max-width: 1180px;
-      margin: auto;
-      padding: 0 20px;
-      display: flex;
-      gap: 26px;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-
-    .nav-inner::-webkit-scrollbar {
-      display: none;
-    }
-
-    .nav-inner a {
-      padding: 14px 0;
-      font-size: 14px;
-      font-weight: 700;
-      white-space: nowrap;
-      color: #333;
-    }
-
-    .nav-inner a:hover {
-      color: #d71920;
-    }
-
-    /* MAIN */
-    main {
-      max-width: 1180px;
-      margin: 28px auto 60px;
-      padding: 0 20px;
-    }
-
-    /* BREAKING */
-    .breaking {
-      display: flex;
-      align-items: center;
-      background: #fff;
-      border: 1px solid #ddd;
-      margin-bottom: 28px;
-      overflow: hidden;
-    }
-
-    .breaking-label {
-      background: #d71920;
-      color: #fff;
-      padding: 12px 18px;
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: .5px;
-      white-space: nowrap;
-    }
-
-    .breaking-text {
-      padding: 12px 18px;
-      font-size: 14px;
-      font-weight: 600;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    }
-
-    /* SECTION TITLE */
-    .section-title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 3px solid #111;
-      margin-bottom: 18px;
-      padding-bottom: 9px;
-    }
-
-    .section-title h2 {
-      font-size: 23px;
-      letter-spacing: -.5px;
-    }
-
-    .section-title span {
-      font-size: 12px;
-      color: #777;
-    }
-
-    /* HERO */
-    .hero {
-      display: grid;
-      grid-template-columns: 1.7fr 1fr;
-      gap: 20px;
-      margin-bottom: 38px;
-    }
-
-    .hero-main,
-    .hero-side {
-      background: #fff;
-      border: 1px solid #ddd;
-      overflow: hidden;
-    }
-
-    .hero-main {
-      min-height: 390px;
-      position: relative;
-      display: flex;
-      align-items: flex-end;
-      background: #222;
-    }
-
-    .hero-main img {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: .82;
-    }
-
-    .hero-overlay {
-      position: relative;
-      z-index: 2;
-      width: 100%;
-      padding: 30px;
-      color: #fff;
-      background: linear-gradient(transparent, rgba(0,0,0,.9));
-    }
-
-    .tag {
-      display: inline-block;
-      background: #d71920;
-      color: #fff;
-      font-size: 10px;
-      font-weight: 900;
-      padding: 5px 8px;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-    }
-
-    .hero-overlay h1 {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 34px;
-      line-height: 1.12;
-      margin-bottom: 10px;
-    }
-
-    .meta {
-      color: #777;
-      font-size: 12px;
-    }
-
-    .hero-overlay .meta {
-      color: #ddd;
-    }
-
-    /* SIDE STORIES */
-    .side-story {
-      padding: 18px;
-      border-bottom: 1px solid #ddd;
-    }
-
-    .side-story:last-child {
-      border-bottom: 0;
-    }
-
-    .side-story h3 {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 19px;
-      line-height: 1.3;
-      margin-bottom: 9px;
-    }
-
-    .side-story:hover h3,
-    .news-card:hover h3 {
-      color: #d71920;
-    }
-
-    /* NEWS GRID */
-    .content-layout {
-      display: grid;
-      grid-template-columns: 1fr 310px;
-      gap: 30px;
-    }
-
-    .news-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 18px;
-    }
-
-    .news-card {
-      background: #fff;
-      border: 1px solid #ddd;
-      overflow: hidden;
-      transition: transform .15s ease, box-shadow .15s ease;
-    }
-
-    .news-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(0,0,0,.08);
-    }
-
-    .news-image {
-      width: 100%;
-      height: 175px;
-      background: #e5e5e5;
-      object-fit: cover;
-    }
-
-    .news-body {
-      padding: 17px;
-    }
-
-    .category {
-      font-size: 10px;
-      color: #d71920;
-      font-weight: 900;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-
-    .news-card h3 {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 20px;
-      line-height: 1.25;
-      margin-bottom: 10px;
-    }
-
-    .snippet {
-      color: #666;
-      font-size: 13px;
-      line-height: 1.5;
-      margin-bottom: 14px;
-    }
-
-    /* SIDEBAR */
-    .sidebar-box {
-      background: #fff;
-      border: 1px solid #ddd;
-      margin-bottom: 20px;
-    }
-
-    .sidebar-title {
-      padding: 13px 16px;
-      border-bottom: 2px solid #111;
-      font-size: 16px;
-      font-weight: 900;
-    }
-
-    .trend {
-      display: flex;
-      gap: 13px;
-      padding: 15px;
-      border-bottom: 1px solid #eee;
-    }
-
-    .trend:last-child {
-      border-bottom: 0;
-    }
-
-    .trend-number {
-      font-size: 24px;
-      font-weight: 900;
-      color: #d71920;
-      min-width: 25px;
-    }
-
-    .trend h4 {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 15px;
-      line-height: 1.3;
-    }
-
-    /* EMPTY / LOADING */
-    .message {
-      background: #fff;
-      border: 1px solid #ddd;
-      padding: 35px;
-      text-align: center;
-      color: #777;
-      grid-column: 1 / -1;
-    }
-
-    /* FOOTER */
-    footer {
-      background: #111;
-      color: #aaa;
-      padding: 35px 20px;
-      margin-top: 50px;
-    }
-
-    .footer-inner {
-      max-width: 1180px;
-      margin: auto;
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-    }
-
-    .footer-logo {
-      color: #fff;
-      font-size: 22px;
-      font-weight: 900;
-    }
-
-    /* MOBILE */
-    @media (max-width: 800px) {
-      .date {
-        display: none;
-      }
-
-      .header-inner {
-        min-height: 65px;
-      }
-
-      .logo {
-        font-size: 25px;
-      }
-
-      .hero {
-        grid-template-columns: 1fr;
-      }
-
-      .hero-main {
-        min-height: 350px;
-      }
-
-      .content-layout {
-        grid-template-columns: 1fr;
-      }
-
-      .news-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .sidebar {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 0;
-      }
-    }
-
-    @media (max-width: 500px) {
-      main {
-        margin-top: 18px;
-      }
-
-      .topbar-inner {
-        justify-content: center;
-      }
-
-      .hero-overlay {
-        padding: 20px;
-      }
-
-      .hero-overlay h1 {
-        font-size: 27px;
-      }
-
-      .breaking-text {
-        font-size: 12px;
-      }
-
-      .breaking-label {
-        padding: 11px 12px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Khabar Express - Latest News</title>
+
+    <style>
+        :root {
+            --red: #c40000;
+            --dark: #111;
+            --gray: #666;
+            --light: #f5f5f5;
+            --border: #ddd;
+            --white: #fff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* TOP BAR */
+        .topbar {
+            background: var(--dark);
+            color: white;
+            padding: 8px 20px;
+            font-size: 13px;
+        }
+
+        .topbar-inner {
+            max-width: 1200px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .live {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .live span {
+            color: var(--red);
+        }
+
+        /* HEADER */
+        header {
+            background: white;
+            border-bottom: 4px solid var(--red);
+        }
+
+        .header-inner {
+            max-width: 1200px;
+            margin: auto;
+            padding: 22px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 42px;
+            font-weight: bold;
+            color: var(--red);
+            line-height: 1;
+        }
+
+        .tagline {
+            margin-top: 7px;
+            font-size: 12px;
+            color: var(--gray);
+            letter-spacing: 1px;
+        }
+
+        /* NAV */
+        nav {
+            background: var(--dark);
+        }
+
+        .nav-inner {
+            max-width: 1200px;
+            margin: auto;
+            display: flex;
+            overflow-x: auto;
+        }
+
+        .nav-inner a {
+            color: white;
+            padding: 14px 20px;
+            white-space: nowrap;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .nav-inner a:hover {
+            background: var(--red);
+        }
+
+        /* MAIN */
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: 30px;
+        }
+
+        /* SECTION TITLE */
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--dark);
+            margin-bottom: 20px;
+        }
+
+        .section-title h1 {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 26px;
+            padding-bottom: 8px;
+        }
+
+        .section-title h1::first-letter {
+            color: var(--red);
+        }
+
+        /* NEWS CARD */
+        .news-card {
+            background: white;
+            border: 1px solid var(--border);
+            margin-bottom: 18px;
+            padding: 22px;
+            transition: 0.2s;
+        }
+
+        .news-card:hover {
+            border-color: #aaa;
+            transform: translateY(-2px);
+        }
+
+        .news-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            color: var(--gray);
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .category {
+            color: var(--red);
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .news-card h2 {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 25px;
+            line-height: 1.25;
+            margin-bottom: 12px;
+        }
+
+        .news-card h2:hover {
+            color: var(--red);
+        }
+
+        .news-card p {
+            color: #444;
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+
+        .read-more {
+            display: inline-block;
+            color: var(--red);
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        /* SIDEBAR */
+        .sidebar-box {
+            background: white;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-title {
+            background: var(--dark);
+            color: white;
+            padding: 12px 15px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .trending-item {
+            display: block;
+            padding: 14px 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .trending-item:hover {
+            color: var(--red);
+        }
+
+        /* LOADING */
+        .loading {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 40px;
+            text-align: center;
+            color: var(--gray);
+        }
+
+        .error {
+            background: white;
+            border: 1px solid #e5b5b5;
+            padding: 30px;
+            text-align: center;
+            color: var(--red);
+        }
+
+        .empty {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 40px;
+            text-align: center;
+            color: var(--gray);
+        }
+
+        /* FOOTER */
+        footer {
+            background: var(--dark);
+            color: #aaa;
+            text-align: center;
+            padding: 35px 20px;
+            margin-top: 40px;
+        }
+
+        footer strong {
+            color: white;
+            font-size: 18px;
+        }
+
+        footer p {
+            margin-top: 8px;
+            font-size: 12px;
+        }
+
+        /* MOBILE */
+        @media (max-width: 800px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .logo {
+                font-size: 32px;
+            }
+
+            .header-inner {
+                padding: 18px 15px;
+            }
+
+            .news-card h2 {
+                font-size: 21px;
+            }
+
+            .container {
+                padding: 0 12px;
+                margin-top: 20px;
+            }
+
+            .nav-inner a {
+                padding: 12px 15px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-  <div class="topbar">
-    <div class="topbar-inner">
-      <span>THE LATEST NEWS, EVERY DAY</span>
-      <span id="today"></span>
-    </div>
-  </div>
-
-  <header>
-    <div class="header-inner">
-      <div class="logo">News<span>-Express</span></div>
-      <div class="date">Independent News &amp; Updates</div>
-    </div>
-  </header>
-
-  <nav>
-    <div class="nav-inner">
-      <a href="#">Home</a>
-      <a href="#india">India</a>
-      <a href="#world">World</a>
-      <a href="#technology">Technology</a>
-      <a href="#sports">Sports</a>
-      <a href="#entertainment">Entertainment</a>
-      <a href="#latest">Latest</a>
-    </div>
-  </nav>
-
-  <main>
-
-    <div class="breaking">
-      <div class="breaking-label">BREAKING</div>
-      <div class="breaking-text" id="breakingText">
-        Loading latest news...
-      </div>
-    </div>
-
-    <div class="section-title">
-      <h2>Top Stories</h2>
-      <span>Updated automatically</span>
-    </div>
-
-    <section class="hero" id="heroSection">
-      <div class="message">Loading news...</div>
-    </section>
-
-    <div class="content-layout">
-
-      <section>
-        <div class="section-title" id="latest">
-          <h2>Latest News</h2>
-          <span id="newsCount"></span>
+    <!-- TOP BAR -->
+    <div class="topbar">
+        <div class="topbar-inner">
+            <div id="current-date">Loading...</div>
+            <div class="live"><span>●</span> LIVE NEWS</div>
         </div>
+    </div>
 
-        <div class="news-grid" id="newsGrid">
-          <div class="message">Loading latest stories...</div>
-        </div>
-      </section>
-
-      <aside class="sidebar">
-
-        <div class="sidebar-box">
-          <div class="sidebar-title">Trending Now</div>
-          <div id="trending">
-            <div class="trend">
-              <div class="trend-number">—</div>
-              <h4>Loading trending stories...</h4>
+    <!-- HEADER -->
+    <header>
+        <div class="header-inner">
+            <div>
+                <div class="logo">Khabar Express</div>
+                <div class="tagline">Latest News • India • World • Technology • Sports</div>
             </div>
-          </div>
         </div>
+    </header>
 
-        <div class="sidebar-box">
-          <div class="sidebar-title">About News-Express</div>
-          <div style="padding:16px;color:#666;font-size:13px;line-height:1.6;">
-            News-Express brings together the latest stories from trusted news
-            sources in one simple place.
-          </div>
+    <!-- NAVIGATION -->
+    <nav>
+        <div class="nav-inner">
+            <a href="#">Home</a>
+            <a href="#">Taaza Khabar</a>
+            <a href="#">India</a>
+            <a href="#">World</a>
+            <a href="#">Sports</a>
+            <a href="#">Technology</a>
+            <a href="#">Entertainment</a>
         </div>
+    </nav>
 
-      </aside>
+    <!-- CONTENT -->
+    <div class="container">
 
-    </div>
-
-  </main>
-
-  <footer>
-    <div class="footer-inner">
-      <div>
-        <div class="footer-logo">News-Express</div>
-        <p style="margin-top:8px;font-size:12px;">
-          Latest news. Simple. Fast. Clear.
-        </p>
-      </div>
-
-      <div style="font-size:12px;">
-        © 2026 News-Express
-      </div>
-    </div>
-  </footer>
-
-  <script>
-    const today = new Date();
-
-    document.getElementById("today").textContent =
-      today.toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric"
-      });
-
-    function escapeHTML(value) {
-      if (!value) return "";
-
-      return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    function getDate(item) {
-      return item.date || item.published || item.pubDate || "";
-    }
-
-    function getTitle(item) {
-      return item.title || "Untitled News";
-    }
-
-    function getSnippet(item) {
-      return item.snippet || item.description || item.summary || "";
-    }
-
-    function getImage(item) {
-      return item.image || item.imageUrl || item.thumbnail || "";
-    }
-
-    function getCategory(item) {
-      return item.category || item.section || "Latest";
-    }
-
-    function formatDate(value) {
-      if (!value) return "";
-
-      const date = new Date(value);
-
-      if (Number.isNaN(date.getTime())) {
-        return value;
-      }
-
-      return date.toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric"
-      });
-    }
-
-    function createImage(item, className) {
-      const image = getImage(item);
-
-      if (!image) {
-        return `<div class="${className}" style="
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          color:#999;
-          font-size:12px;
-        ">NEWS-EXPRESS</div>`;
-      }
-
-      return `
-        <img
-          class="${className}"
-          src="${escapeHTML(image)}"
-          alt=""
-          loading="lazy"
-          onerror="this.style.display='none'"
-        >
-      `;
-    }
-
-    async function loadNews() {
-      try {
-        const response = await fetch("news.json?t=" + Date.now());
-
-        if (!response.ok) {
-          throw new Error("Could not load news.json");
-        }
-
-        const data = await response.json();
-
-        let news = Array.isArray(data)
-          ? data
-          : (data.news || data.articles || data.items || []);
-
-        news = news.filter(item => item && getTitle(item));
-
-        news.sort((a, b) => {
-          return new Date(getDate(b)) - new Date(getDate(a));
-        });
-
-        if (!news.length) {
-          document.getElementById("heroSection").innerHTML =
-            `<div class="message">No news available right now.</div>`;
-
-          document.getElementById("newsGrid").innerHTML =
-            `<div class="message">No news available right now.</div>`;
-
-          return;
-        }
-
-        renderHero(news);
-        renderLatest(news);
-        renderTrending(news);
-
-        document.getElementById("breakingText").textContent =
-          getTitle(news[0]);
-
-        document.getElementById("newsCount").textContent =
-          news.length + " stories";
-
-      } catch (error) {
-        console.error(error);
-
-        document.getElementById("heroSection").innerHTML =
-          `<div class="message">
-            Unable to load news. Please try again later.
-          </div>`;
-
-        document.getElementById("newsGrid").innerHTML =
-          `<div class="message">
-            Unable to load news. Please try again later.
-          </div>`;
-      }
-    }
-
-    function renderHero(news) {
-      const main = news[0];
-      const side = news.slice(1, 4);
-
-      document.getElementById("heroSection").innerHTML = `
-        <article class="hero-main">
-          ${createImage(main, "hero-image")}
-
-          <div class="hero-overlay">
-            <div class="tag">${escapeHTML(getCategory(main))}</div>
-
-            <h1>${escapeHTML(getTitle(main))}</h1>
-
-            <div class="meta">
-              ${escapeHTML(formatDate(getDate(main)))}
+        <!-- NEWS -->
+        <main>
+            <div class="section-title">
+                <h1>Taaza Khabrein</h1>
             </div>
-          </div>
-        </article>
 
-        <div class="hero-side">
-          ${
-            side.map(item => `
-              <article class="side-story">
-                <div class="category">
-                  ${escapeHTML(getCategory(item))}
+            <div id="news-list">
+                <div class="loading">
+                    Khabrein load ho rahi hain...
+                </div>
+            </div>
+        </main>
+
+        <!-- SIDEBAR -->
+        <aside>
+
+            <div class="sidebar-box">
+                <div class="sidebar-title">
+                    🔥 Trending
                 </div>
 
-                <h3>${escapeHTML(getTitle(item))}</h3>
-
-                <div class="meta">
-                  ${escapeHTML(formatDate(getDate(item)))}
+                <div id="trending-list">
+                    <div class="trending-item">Latest News</div>
+                    <div class="trending-item">India News</div>
+                    <div class="trending-item">Technology</div>
+                    <div class="trending-item">Sports</div>
+                    <div class="trending-item">Entertainment</div>
                 </div>
-              </article>
-            `).join("")
-          }
-        </div>
-      `;
-    }
-
-    function renderLatest(news) {
-      const latest = news.slice(3, 15);
-
-      if (!latest.length) {
-        document.getElementById("newsGrid").innerHTML =
-          `<div class="message">More stories coming soon.</div>`;
-        return;
-      }
-
-      document.getElementById("newsGrid").innerHTML =
-        latest.map(item => `
-          <article class="news-card">
-
-            ${createImage(item, "news-image")}
-
-            <div class="news-body">
-
-              <div class="category">
-                ${escapeHTML(getCategory(item))}
-              </div>
-
-              <h3>
-                ${escapeHTML(getTitle(item))}
-              </h3>
-
-              <p class="snippet">
-                ${escapeHTML(getSnippet(item))}
-              </p>
-
-              <div class="meta">
-                ${escapeHTML(formatDate(getDate(item)))}
-              </div>
-
             </div>
 
-          </article>
-        `).join("");
-    }
+            <div class="sidebar-box">
+                <div class="sidebar-title">
+                    About Khabar Express
+                </div>
 
-    function renderTrending(news) {
-      const trending = news.slice(0, 5);
-
-      document.getElementById("trending").innerHTML =
-        trending.map((item, index) => `
-          <article class="trend">
-            <div class="trend-number">
-              ${String(index + 1).padStart(2, "0")}
+                <div style="padding:15px; font-size:13px; line-height:1.7; color:#555;">
+                    Latest news automatically collected from trusted news feeds
+                    and processed for easier reading.
+                </div>
             </div>
 
-            <h4>
-              ${escapeHTML(getTitle(item))}
-            </h4>
-          </article>
-        `).join("");
-    }
+        </aside>
 
-    loadNews();
+    </div>
 
-    // Refresh the displayed news every 5 minutes.
-    setInterval(loadNews, 5 * 60 * 1000);
-  </script>
+    <!-- FOOTER -->
+    <footer>
+        <strong>Khabar Express</strong>
+        <p>© 2026 Khabar Express. All Rights Reserved.</p>
+    </footer>
+
+
+    <script>
+
+        // DATE
+        document.getElementById("current-date").textContent =
+            new Date().toLocaleDateString("hi-IN", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric"
+            });
+
+
+        // SAFE HTML
+        function escapeHTML(value) {
+            if (value === null || value === undefined) return "";
+
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+
+        // TITLE
+        function getTitle(item) {
+            return (
+                item.headline ||
+                item.title ||
+                item.originalTitle ||
+                "Untitled News"
+            );
+        }
+
+
+        // SUMMARY
+        function getSummary(item) {
+            return (
+                item.summary ||
+                item.snippet ||
+                item.description ||
+                ""
+            );
+        }
+
+
+        // DATE
+        function getDate(item) {
+            const date =
+                item.publishedAt ||
+                item.date ||
+                item.published ||
+                item.pubDate ||
+                item.addedAt;
+
+            if (!date) return "";
+
+            const parsed = new Date(date);
+
+            if (isNaN(parsed.getTime())) {
+                return escapeHTML(date);
+            }
+
+            return parsed.toLocaleDateString("hi-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric"
+            });
+        }
+
+
+        // CATEGORY
+        function getCategory(item) {
+            return item.category || "News";
+        }
+
+
+        // SOURCE
+        function getSource(item) {
+            return item.source || "News Feed";
+        }
+
+
+        // LOAD NEWS
+        async function loadNews() {
+
+            const newsList = document.getElementById("news-list");
+
+            try {
+
+                /*
+                    ?v=Date.now() prevents browser/GitHub Pages
+                    from showing an old cached news.json
+                */
+                const response = await fetch(
+                    "news.json?v=" + Date.now(),
+                    {
+                        cache: "no-store"
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error("news.json not found");
+                }
+
+                const data = await response.json();
+
+                if (!Array.isArray(data) || data.length === 0) {
+
+                    newsList.innerHTML = `
+                        <div class="empty">
+                            Abhi koi news available nahi hai.
+                        </div>
+                    `;
+
+                    return;
+                }
+
+
+                // Newest first
+                data.sort((a, b) => {
+
+                    const dateA = new Date(
+                        a.publishedAt ||
+                        a.addedAt ||
+                        a.date ||
+                        0
+                    );
+
+                    const dateB = new Date(
+                        b.publishedAt ||
+                        b.addedAt ||
+                        b.date ||
+                        0
+                    );
+
+                    return dateB - dateA;
+                });
+
+
+                let html = "";
+
+
+                data.forEach(item => {
+
+                    const title = escapeHTML(getTitle(item));
+                    const summary = escapeHTML(getSummary(item));
+                    const category = escapeHTML(getCategory(item));
+                    const source = escapeHTML(getSource(item));
+                    const date = getDate(item);
+
+                    const url = item.url || "";
+
+
+                    html += `
+                        <article class="news-card">
+
+                            <div class="news-meta">
+
+                                <span class="category">
+                                    ${category}
+                                </span>
+
+                                <span>
+                                    ${source}
+                                </span>
+
+                                <span>
+                                    ${date}
+                                </span>
+
+                            </div>
+
+                            <h2>
+                                ${title}
+                            </h2>
+
+                            <p>
+                                ${summary}
+                            </p>
+
+                            ${
+                                url
+                                ? `
+                                    <a
+                                        class="read-more"
+                                        href="${escapeHTML(url)}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        पूरी खबर पढ़ें →
+                                    </a>
+                                `
+                                : ""
+                            }
+
+                        </article>
+                    `;
+                });
+
+
+                newsList.innerHTML = html;
+
+
+                // TRENDING
+                const trendingList =
+                    document.getElementById("trending-list");
+
+                const trendingNews = [...data]
+                    .sort(
+                        (a, b) =>
+                            (Number(b.trendingScore) || 0) -
+                            (Number(a.trendingScore) || 0)
+                    )
+                    .slice(0, 5);
+
+
+                if (trendingNews.length > 0) {
+
+                    trendingList.innerHTML =
+                        trendingNews
+                            .map(item => `
+                                <a
+                                    class="trending-item"
+                                    href="${escapeHTML(item.url || "#")}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    🔥 ${escapeHTML(getTitle(item))}
+                                </a>
+                            `)
+                            .join("");
+                }
+
+            } catch (error) {
+
+                console.error("News loading error:", error);
+
+                newsList.innerHTML = `
+                    <div class="error">
+                        <strong>News load nahi ho paayi.</strong>
+                        <br><br>
+                        Please check karo ki
+                        <strong>news.json</strong>
+                        GitHub repository mein available hai.
+                    </div>
+                `;
+            }
+        }
+
+
+        // START
+        loadNews();
+
+    </script>
 
 </body>
 </html>
-```
