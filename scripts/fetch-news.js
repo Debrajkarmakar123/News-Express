@@ -13,6 +13,7 @@ const ai = new GoogleGenAI({
 
 const NEWS_FILE = "./news.json";
 
+// RSS feeds
 const FEEDS = [
   {
     name: "Google News",
@@ -36,29 +37,16 @@ const FEEDS = [
   }
 ];
 
-const ALLOWED_CATEGORIES = [
-  "India",
-  "World",
-  "Technology",
-  "Business",
-  "Sports",
-  "Entertainment",
-  "Science",
-  "Other"
-];
-
 function loadNews() {
   if (!fs.existsSync(NEWS_FILE)) {
     return [];
   }
 
   try {
-    const data = JSON.parse(
-      fs.readFileSync(NEWS_FILE, "utf8")
-    );
-
+    const data = JSON.parse(fs.readFileSync(NEWS_FILE, "utf8"));
     return Array.isArray(data) ? data : [];
-  } catch {
+  } catch (error) {
+    console.log("Could not read news.json:", error.message);
     return [];
   }
 }
@@ -74,54 +62,66 @@ function saveNews(news) {
 function normalizeUrl(url) {
   try {
     const u = new URL(url);
+
     u.hash = "";
 
-    return u
-      .toString()
-      .replace(/\/$/, "");
+    // Remove common tracking parameters
+    [
+      "utm_source",
+      "utm_medium",
+      "utm_campaign",
+      "utm_term",
+      "utm_content",
+      "gclid",
+      "fbclid"
+    ].forEach(param => {
+      u.searchParams.delete(param);
+    });
+
+    return u.toString().replace(/\/$/, "");
   } catch {
-    return url;
+    return String(url || "").trim();
   }
 }
 
 function cleanText(text = "") {
   return String(text)
     .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-
 /*
-  Creates URL-friendly slug.
+  Converts a headline into a URL-friendly slug.
 
   Example:
-  "India Budget 2026: New Announcement!"
+  "India Announces Major New Policy 2026!"
   =>
-  "india-budget-2026-new-announcement"
+  "india-announces-major-new-policy-2026"
 */
 function createSlug(text = "") {
   let slug = cleanText(text)
     .toLowerCase()
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .replace(/-+/g, "-");
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 
   if (!slug) {
     slug = "news";
   }
 
-  return slug.slice(0, 100);
+  return slug.slice(0, 120).replace(/-$/, "");
 }
 
-
-/*
-  Makes sure every article has a unique slug.
-*/
-function createUniqueSlug(title, usedSlugs) {
-  const base = createSlug(title);
+function createUniqueSlug(text, usedSlugs) {
+  const base = createSlug(text);
 
   let slug = base;
   let counter = 2;
@@ -136,39 +136,40 @@ function createUniqueSlug(title, usedSlugs) {
   return slug;
 }
 
-
 /*
-  Existing news from older versions may not have slugs.
-  Give those articles stable slugs too.
+  Old articles may not have a slug because they were created
+  before slug support was added.
+
+  This function gives those old articles stable slugs too.
 */
 function migrateOldSlugs(news) {
   const usedSlugs = new Set();
 
-  // First preserve existing slugs
-  for (const item of news) {
-    if (item.slug) {
-      usedSlugs.add(item.slug);
+  // First preserve already existing slugs
+  for (const article of news) {
+    if (article.slug) {
+      usedSlugs.add(article.slug);
     }
   }
 
-  for (const item of news) {
-    if (!item.slug) {
-      const title =
-        item.headline ||
-        item.originalTitle ||
-        item.title ||
-        "news";
-
-      item.slug = createUniqueSlug(
-        title,
-        usedSlugs
-      );
+  // Then generate missing slugs
+  return news.map(article => {
+    if (article.slug) {
+      return article;
     }
-  }
 
-  return news;
+    const sourceText =
+      article.headline ||
+      article.originalTitle ||
+      article.title ||
+      "news";
+
+    return {
+      ...article,
+      slug: createUniqueSlug(sourceText, usedSlugs)
+    };
+  });
 }
-
 
 function hoursOld(date) {
   const time = new Date(date).getTime();
@@ -179,11 +180,9 @@ function hoursOld(date) {
 
   return Math.max(
     0,
-    (Date.now() - time) /
-      (1000 * 60 * 60)
+    (Date.now() - time) / (1000 * 60 * 60)
   );
 }
-
 
 function recencyScore(date) {
   const hours = hoursOld(date);
@@ -199,7 +198,6 @@ function recencyScore(date) {
   return 5;
 }
 
-
 async function fetchFeeds() {
   const articles = [];
 
@@ -207,8 +205,7 @@ async function fetchFeeds() {
     try {
       console.log(`Fetching: ${feed.name}`);
 
-      const result =
-        await parser.parseURL(feed.url);
+      const result = await parser.parseURL(feed.url);
 
       for (const item of result.items || []) {
         if (!item.link || !item.title) {
@@ -217,16 +214,12 @@ async function fetchFeeds() {
 
         articles.push({
           title: cleanText(item.title),
-
           url: normalizeUrl(item.link),
-
           source: feed.name,
-
           publishedAt:
             item.isoDate ||
             item.pubDate ||
             new Date().toISOString(),
-
           description: cleanText(
             item.contentSnippet ||
             item.content ||
@@ -235,7 +228,6 @@ async function fetchFeeds() {
           )
         });
       }
-
     } catch (error) {
       console.log(
         `Feed failed: ${feed.name}`,
@@ -247,12 +239,10 @@ async function fetchFeeds() {
   return articles;
 }
 
-
 function groupSimilarStories(articles) {
   const groups = new Map();
 
   for (const article of articles) {
-
     const key = article.title
       .toLowerCase()
       .replace(/[^a-z0-9\s]/g, "")
@@ -271,19 +261,11 @@ function groupSimilarStories(articles) {
   return groups;
 }
 
-
 async function aiAnalyze(article) {
-
-  if (!process.env.GEMINI_API_KEY) {
-    throw new Error(
-      "GEMINI_API_KEY is missing."
-    );
-  }
-
   const prompt = `
 You are a professional news editor.
 
-Analyze the following news article.
+Analyze the following news item.
 
 Title:
 ${article.title}
@@ -296,51 +278,33 @@ ${article.source}
 
 Return ONLY valid JSON.
 
-Required format:
-
+Required JSON format:
 {
   "headline": "short accurate headline",
   "summary": "2-3 sentence factual summary",
-  "category": "India",
+  "category": "one of: India, World, Technology, Business, Sports, Entertainment, Science, Other",
   "tags": ["tag1", "tag2", "tag3"],
   "importance": 5
 }
 
-Category must be exactly one of:
-India, World, Technology, Business, Sports, Entertainment, Science, Other
-
 Rules:
 - Do not invent facts.
-- Do not add information not supported by the provided title or description.
-- Keep the headline accurate.
+- Do not add information that is not supported by the title or description.
 - Keep the summary factual.
 - importance must be an integer from 1 to 10.
-- tags should be short and relevant.
+- headline must accurately represent the supplied news.
 `;
 
   try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json"
+      }
+    });
 
-    console.log("Sending article to Gemini...");
-
-    const response =
-      await ai.models.generateContent({
-        model: "gemini-2.5-flash-lite",
-
-        contents: prompt,
-
-        config: {
-          responseMimeType: "application/json"
-        }
-      });
-
-    const text =
-      response.text?.trim() || "";
-
-    if (!text) {
-      throw new Error(
-        "Gemini returned an empty response."
-      );
-    }
+    const text = response.text.trim();
 
     const cleaned = text
       .replace(/^```json/i, "")
@@ -348,104 +312,68 @@ Rules:
       .replace(/```$/i, "")
       .trim();
 
-    const result =
-      JSON.parse(cleaned);
-
-    const headline =
-      cleanText(result.headline) ||
-      article.title;
-
-    const summary =
-      cleanText(result.summary) ||
-      article.description ||
-      article.title;
-
-    const category =
-      ALLOWED_CATEGORIES.includes(
-        result.category
-      )
-        ? result.category
-        : "Other";
-
-    const tags =
-      Array.isArray(result.tags)
-        ? result.tags
-            .map(tag => cleanText(tag))
-            .filter(Boolean)
-            .slice(0, 5)
-        : [];
-
-    let importance =
-      Number(result.importance);
-
-    if (!Number.isInteger(importance)) {
-      importance = 5;
-    }
-
-    importance =
-      Math.max(
-        1,
-        Math.min(10, importance)
-      );
+    const result = JSON.parse(cleaned);
 
     return {
-      headline,
-      summary,
-      category,
-      tags,
-      importance
+      headline:
+        cleanText(result.headline) ||
+        article.title,
+
+      summary:
+        cleanText(result.summary) ||
+        article.description ||
+        article.title,
+
+      category:
+        cleanText(result.category) ||
+        "Other",
+
+      tags:
+        Array.isArray(result.tags)
+          ? result.tags
+              .map(tag => cleanText(tag))
+              .filter(Boolean)
+              .slice(0, 5)
+          : [],
+
+      importance:
+        Number.isInteger(result.importance)
+          ? Math.min(Math.max(result.importance, 1), 10)
+          : 5
     };
-
   } catch (error) {
-
     console.log(
       "Gemini analysis failed:",
       error.message
     );
 
-    /*
-      Fallback means RSS news is still saved
-      even if Gemini temporarily fails.
-    */
+    // Safe fallback when AI fails
     return {
       headline: article.title,
-
       summary:
         article.description ||
         article.title,
-
       category: "Other",
-
       tags: [],
-
       importance: 5
     };
   }
 }
-
 
 function calculateTrendingScore({
   article,
   sourceCount,
   importance
 }) {
+  const recent = recencyScore(article.publishedAt);
 
-  const recent =
-    recencyScore(
-      article.publishedAt
-    );
-
-  const sourceScore =
-    Math.min(
-      sourceCount * 10,
-      40
-    );
+  const sourceScore = Math.min(
+    sourceCount * 10,
+    40
+  );
 
   const importanceScore =
-    Math.min(
-      importance,
-      10
-    ) * 5;
+    Math.min(importance, 10) * 5;
 
   return Math.round(
     recent +
@@ -454,13 +382,8 @@ function calculateTrendingScore({
   );
 }
 
-
 async function main() {
-
-  console.log(
-    "Starting News-Express updater..."
-  );
-
+  console.log("Starting News-Express updater...");
 
   let oldNews = loadNews();
 
@@ -468,173 +391,111 @@ async function main() {
     `Existing archive: ${oldNews.length} articles`
   );
 
+  // Add slugs to old articles that don't have one
+  oldNews = migrateOldSlugs(oldNews);
 
-  /*
-    Give old articles slugs if they
-    came from an older version.
-  */
-  oldNews =
-    migrateOldSlugs(oldNews);
-
-
-  const fetched =
-    await fetchFeeds();
+  const fetched = await fetchFeeds();
 
   console.log(
     `Fetched: ${fetched.length} articles`
   );
 
-
-  /*
-    Remove duplicate RSS URLs.
-  */
-  const unique =
-    new Map();
+  // Remove duplicate URLs from current fetch
+  const unique = new Map();
 
   for (const article of fetched) {
-
     if (!unique.has(article.url)) {
-      unique.set(
-        article.url,
-        article
-      );
+      unique.set(article.url, article);
     }
   }
 
+  const articles = [...unique.values()];
 
-  const articles =
-    [...unique.values()];
+  console.log(
+    `Unique fetched articles: ${articles.length}`
+  );
 
-
-  const groups =
-    groupSimilarStories(
-      articles
-    );
-
+  // Group similar stories
+  const groups = groupSimilarStories(articles);
 
   const newArticles = [];
 
-
-  /*
-    Reserve all existing slugs.
-  */
-  const usedSlugs =
-    new Set(
-      oldNews
-        .map(item => item.slug)
-        .filter(Boolean)
-    );
-
+  // Keep all existing slugs reserved
+  const usedSlugs = new Set(
+    oldNews
+      .map(item => item.slug)
+      .filter(Boolean)
+  );
 
   for (const [, group] of groups) {
+    const primary = group[0];
 
-    const primary =
-      group[0];
-
-
-    const alreadyExists =
-      oldNews.some(
-        item =>
-          normalizeUrl(item.url) ===
-          normalizeUrl(primary.url)
-      );
-
+    // URL-based permanent duplicate check
+    const alreadyExists = oldNews.some(
+      item =>
+        normalizeUrl(item.url) ===
+        normalizeUrl(primary.url)
+    );
 
     if (alreadyExists) {
       continue;
     }
 
-
     console.log(
       `Analyzing: ${primary.title}`
     );
 
+    const aiResult = await aiAnalyze(primary);
 
-    const aiResult =
-      await aiAnalyze(
-        primary
-      );
-
-
-    /*
-      Small delay to avoid hammering
-      the API with requests.
-    */
-    await new Promise(
-      resolve =>
-        setTimeout(resolve, 300)
-    );
-
-
-    const sourceCount =
-      group.length;
-
+    const sourceCount = group.length;
 
     const trendingScore =
       calculateTrendingScore({
         article: primary,
         sourceCount,
-        importance:
-          aiResult.importance
+        importance: aiResult.importance
       });
 
-
-    const slug =
-      createUniqueSlug(
-        aiResult.headline ||
-        primary.title,
-        usedSlugs
-      );
-
+    /*
+      Slug is based on the final AI headline.
+      If two articles have the same headline,
+      -2, -3, etc. is automatically added.
+    */
+    const slug = createUniqueSlug(
+      aiResult.headline || primary.title,
+      usedSlugs
+    );
 
     newArticles.push({
-
-      /*
-        Stable internal identifier.
-        This is NOT used in the URL.
-      */
       id:
         `${Date.now()}-` +
         Math.random()
           .toString(36)
           .slice(2, 8),
 
-      /*
-        Permanent URL slug.
-      */
       slug,
 
-      headline:
-        aiResult.headline,
+      headline: aiResult.headline,
 
-      originalTitle:
-        primary.title,
+      originalTitle: primary.title,
 
-      summary:
-        aiResult.summary,
+      summary: aiResult.summary,
 
-      category:
-        aiResult.category,
+      category: aiResult.category,
 
-      tags:
-        aiResult.tags,
+      tags: aiResult.tags,
 
-      source:
-        primary.source,
+      source: primary.source,
 
       sourceCount,
 
-      url:
-        primary.url,
+      url: primary.url,
 
-      publishedAt:
-        primary.publishedAt,
+      publishedAt: primary.publishedAt,
 
-      addedAt:
-        new Date().toISOString(),
+      addedAt: new Date().toISOString(),
 
-      importance:
-        aiResult.importance,
+      importance: aiResult.importance,
 
       trendingScore,
 
@@ -643,51 +504,39 @@ async function main() {
     });
   }
 
-
-  /*
-    Permanent archive.
-    New + old.
-  */
+  // Permanent archive:
+  // NEW + OLD
   const archive = [
     ...newArticles,
     ...oldNews
   ];
 
+  // Latest published news first
+  archive.sort((a, b) => {
+    const dateA = new Date(a.publishedAt).getTime();
+    const dateB = new Date(b.publishedAt).getTime();
 
-  /*
-    Latest first.
-  */
-  archive.sort(
-    (a, b) =>
-      new Date(b.publishedAt) -
-      new Date(a.publishedAt)
-  );
-
+    return (
+      (Number.isFinite(dateB) ? dateB : 0) -
+      (Number.isFinite(dateA) ? dateA : 0)
+    );
+  });
 
   saveNews(archive);
-
 
   console.log(
     `Added ${newArticles.length} new articles`
   );
 
-
   console.log(
     `Permanent archive now contains ${archive.length} articles`
   );
 
-
   console.log("Done.");
 }
 
-
 main().catch(error => {
-
-  console.error(
-    "News update failed:",
-    error
-  );
-
+  console.error("Updater failed:", error);
   process.exit(1);
 });
 ````
