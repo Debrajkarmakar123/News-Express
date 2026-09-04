@@ -1,9 +1,0 @@
-{
-  "name": "news-express",
-  "version": "1.0.0",
-  "description": "Auto AI News Portal",
-  "main": "index.html",
-  "dependencies": {
-    "node-fetch": "^2.6.7"
-  }
-}
