@@ -1,4 +1,3 @@
-```yaml
 name: Update News
 
 on:
@@ -26,6 +25,17 @@ jobs:
       - name: Install dependencies
         run: npm install --no-package-lock
 
+      - name: Check Gemini Secret
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "❌ GEMINI_API_KEY is NOT available"
+            exit 1
+          else
+            echo "✅ GEMINI_API_KEY is available"
+          fi
+
       - name: Update news with Gemini
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -44,4 +54,3 @@ jobs:
             git commit -m "Update news archive"
             git push
           fi
-```
