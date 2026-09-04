@@ -1,379 +1,352 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+<title>News-Express - Latest News</title>
 
-  <meta
-    name="description"
-    content="News-Express - Latest breaking and trending news"
-  >
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-  <title>News-Express - Latest News</title>
+body {
+    font-family: Arial, sans-serif;
+    background: #f3f3f3;
+    color: #222;
+}
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+header {
+    background: #fff;
+    border-bottom: 3px solid #cc0000;
+}
 
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f6f8;
-      color: #171717;
-      line-height: 1.6;
-    }
+.header-container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 20px 15px;
+}
 
-    header {
-      background: #111827;
-      color: white;
-      padding: 22px 20px;
-    }
+.logo {
+    font-size: 32px;
+    font-weight: 900;
+    color: #cc0000;
+}
 
-    .header-inner {
-      max-width: 1100px;
-      margin: auto;
-    }
+.tagline {
+    color: #666;
+    font-size: 13px;
+    margin-top: 4px;
+}
 
+nav {
+    background: #1a1a1a;
+}
+
+.nav-container {
+    max-width: 1100px;
+    margin: auto;
+    display: flex;
+    overflow-x: auto;
+}
+
+.nav-container a {
+    color: white;
+    text-decoration: none;
+    padding: 13px 18px;
+    white-space: nowrap;
+}
+
+.nav-container a:hover {
+    background: #333;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 25px auto;
+    padding: 0 15px;
+}
+
+.section-header {
+    border-bottom: 2px solid #cc0000;
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.news-card {
+    background: white;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+.news-image {
+    width: 100%;
+    height: 260px;
+    object-fit: cover;
+    display: block;
+}
+
+.news-content {
+    padding: 20px;
+}
+
+.news-meta {
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 8px;
+}
+
+.news-card h2 {
+    font-size: 22px;
+    line-height: 1.35;
+    margin-bottom: 10px;
+}
+
+.news-card p {
+    color: #555;
+    line-height: 1.7;
+    margin-bottom: 15px;
+}
+
+.read-more {
+    display: inline-block;
+    background: #cc0000;
+    color: white;
+    padding: 9px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.video-badge {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 12px;
+    background: #eee;
+    padding: 5px 8px;
+    border-radius: 4px;
+}
+
+.no-image {
+    height: 180px;
+    background: #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #777;
+}
+
+footer {
+    background: #1a1a1a;
+    color: #aaa;
+    text-align: center;
+    padding: 30px;
+    margin-top: 40px;
+}
+
+@media (max-width: 600px) {
     .logo {
-      font-size: 30px;
-      font-weight: 800;
+        font-size: 27px;
     }
 
-    .tagline {
-      margin-top: 4px;
-      color: #cbd5e1;
-      font-size: 14px;
-    }
-
-    nav {
-      margin-top: 18px;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    nav button {
-      border: 0;
-      padding: 8px 14px;
-      border-radius: 999px;
-      cursor: pointer;
-      background: #374151;
-      color: white;
-    }
-
-    nav button.active {
-      background: white;
-      color: #111827;
-    }
-
-    main {
-      max-width: 1100px;
-      margin: 35px auto;
-      padding: 0 18px;
-    }
-
-    .section-title {
-      font-size: 28px;
-      margin-bottom: 20px;
-    }
-
-    #news-container {
-      display: grid;
-      gap: 18px;
-    }
-
-    .news-card {
-      background: white;
-      border-radius: 14px;
-      padding: 24px;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+    .news-image {
+        height: 210px;
     }
 
     .news-card h2 {
-      font-size: 23px;
-      line-height: 1.3;
-      margin-bottom: 12px;
+        font-size: 19px;
     }
-
-    .news-card h2 a {
-      color: #111827;
-      text-decoration: none;
-    }
-
-    .news-card h2 a:hover {
-      text-decoration: underline;
-    }
-
-    .summary {
-      color: #4b5563;
-      font-size: 16px;
-    }
-
-    .meta {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-      font-size: 13px;
-      color: #6b7280;
-    }
-
-    .category {
-      font-weight: bold;
-      color: #2563eb;
-    }
-
-    .read-more {
-      display: inline-block;
-      margin-top: 16px;
-      text-decoration: none;
-      font-weight: bold;
-      color: #2563eb;
-    }
-
-    .loading,
-    .error,
-    .empty {
-      background: white;
-      padding: 30px;
-      border-radius: 14px;
-      text-align: center;
-    }
-
-    footer {
-      text-align: center;
-      padding: 35px 20px;
-      color: #6b7280;
-    }
-
-    @media (max-width: 600px) {
-      .logo {
-        font-size: 25px;
-      }
-
-      .news-card {
-        padding: 18px;
-      }
-
-      .news-card h2 {
-        font-size: 20px;
-      }
-    }
-  </style>
+}
+</style>
 </head>
 
 <body>
 
 <header>
-  <div class="header-inner">
-
-    <div class="logo">
-      News-Express
+    <div class="header-container">
+        <div class="logo">NEWS-EXPRESS</div>
+        <div class="tagline">Latest News • Original AI Articles</div>
     </div>
-
-    <div class="tagline">
-      Latest news, explained clearly
-    </div>
-
-    <nav>
-      <button
-        class="active"
-        data-category="All"
-      >
-        All
-      </button>
-
-      <button data-category="India">
-        India
-      </button>
-
-      <button data-category="Technology">
-        Technology
-      </button>
-
-      <button data-category="Sports">
-        Sports
-      </button>
-
-      <button data-category="Entertainment">
-        Entertainment
-      </button>
-    </nav>
-
-  </div>
 </header>
 
-<main>
-
-  <h1 class="section-title">
-    Latest News
-  </h1>
-
-  <div id="news-container">
-    <div class="loading">
-      Loading latest news...
+<nav>
+    <div class="nav-container">
+        <a href="index.html">Home</a>
+        <a href="index.html?category=India">India</a>
+        <a href="index.html?category=Technology">Technology</a>
+        <a href="index.html?category=Sports">Sports</a>
+        <a href="index.html?category=Entertainment">Entertainment</a>
     </div>
-  </div>
+</nav>
 
-</main>
+<div class="container">
+
+    <div class="section-header">
+        <div class="section-title">Latest News</div>
+    </div>
+
+    <div id="news-list">
+        Loading news...
+    </div>
+
+</div>
 
 <footer>
-  © 2026 News-Express
+    <strong>News-Express</strong>
+    <br><br>
+    Latest news and original articles.
 </footer>
 
 <script>
-  let allNews = [];
-
-  const container =
-    document.getElementById("news-container");
-
-  function escapeHTML(value = "") {
+function escapeHTML(value = "") {
     return String(value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
-  function formatDate(date) {
+function formatDate(date) {
     const d = new Date(date);
 
     if (Number.isNaN(d.getTime())) {
-      return "";
+        return "";
     }
 
-    return d.toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric"
+    return d.toLocaleString("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short"
     });
-  }
+}
 
-  function renderNews(category = "All") {
-    const filtered =
-      category === "All"
-        ? allNews
-        : allNews.filter(
-            item =>
-              item.category === category
-          );
+function getCategory() {
+    return new URLSearchParams(
+        window.location.search
+    ).get("category");
+}
 
-    const latest = filtered.slice(0, 10);
+fetch("news.json")
+    .then(res => {
+        if (!res.ok) {
+            throw new Error("news.json failed");
+        }
 
-    if (!latest.length) {
-      container.innerHTML = `
-        <div class="empty">
-          No news available in this category.
-        </div>
-      `;
-
-      return;
-    }
-
-    container.innerHTML = latest
-      .map(item => {
-        return `
-          <article class="news-card">
-
-            <div class="meta">
-              <span class="category">
-                ${escapeHTML(item.category || "News")}
-              </span>
-
-              <span>
-                ${formatDate(item.publishedAt)}
-              </span>
-            </div>
-
-            <h2>
-              <a
-                href="article.html?id=${encodeURIComponent(item.id)}"
-              >
-                ${escapeHTML(item.headline)}
-              </a>
-            </h2>
-
-            <p class="summary">
-              ${escapeHTML(item.summary)}
-            </p>
-
-            <a
-              class="read-more"
-              href="article.html?id=${encodeURIComponent(item.id)}"
-            >
-              Read Full Article →
-            </a>
-
-          </article>
-        `;
-      })
-      .join("");
-  }
-
-  fetch("news.json", {
-    cache: "no-store"
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(
-          "Could not load news.json"
-        );
-      }
-
-      return response.json();
+        return res.json();
     })
     .then(data => {
-      if (!Array.isArray(data)) {
-        throw new Error(
-          "news.json is not an array."
-        );
-      }
 
-      allNews = data;
+        let news = Array.isArray(data)
+            ? data
+            : [];
 
-      renderNews("All");
+        const category = getCategory();
+
+        if (category) {
+            news = news.filter(
+                item =>
+                    item.category === category
+            );
+        }
+
+        // Homepage: latest 10
+        news = news.slice(0, 10);
+
+        if (!news.length) {
+            document.getElementById("news-list").innerHTML =
+                "<p>No news available.</p>";
+            return;
+        }
+
+        let html = "";
+
+        news.forEach(item => {
+
+            const image = item.image
+                ? `
+                    <img
+                        class="news-image"
+                        src="${escapeHTML(item.image)}"
+                        alt="${escapeHTML(item.headline || "News image")}"
+                        loading="lazy"
+                    >
+                  `
+                : `
+                    <div class="no-image">
+                        No image available
+                    </div>
+                  `;
+
+            const videoBadge = item.video
+                ? `<span class="video-badge">🎥 Video available</span>`
+                : "";
+
+            html += `
+                <article class="news-card">
+
+                    ${image}
+
+                    <div class="news-content">
+
+                        <div class="news-meta">
+                            ${escapeHTML(item.category || "News")}
+                            •
+                            ${escapeHTML(formatDate(item.publishedAt))}
+                            ${videoBadge}
+                        </div>
+
+                        <h2>
+                            ${escapeHTML(
+                                item.headline ||
+                                item.originalTitle ||
+                                "Untitled"
+                            )}
+                        </h2>
+
+                        <p>
+                            ${escapeHTML(
+                                item.summary || ""
+                            )}
+                        </p>
+
+                        <a
+                            class="read-more"
+                            href="article.html?id=${encodeURIComponent(item.id)}"
+                        >
+                            Read Full Article →
+                        </a>
+
+                    </div>
+
+                </article>
+            `;
+        });
+
+        document.getElementById(
+            "news-list"
+        ).innerHTML = html;
     })
     .catch(error => {
-      console.error(error);
+        console.error(error);
 
-      container.innerHTML = `
-        <div class="error">
-          Unable to load news right now.
-        </div>
-      `;
-    });
-
-  document
-    .querySelectorAll("nav button")
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          document
-            .querySelectorAll("nav button")
-            .forEach(btn =>
-              btn.classList.remove("active")
-            );
-
-          button.classList.add("active");
-
-          renderNews(
-            button.dataset.category
-          );
-        }
-      );
-
+        document.getElementById(
+            "news-list"
+        ).innerHTML =
+            "<p style='color:red'>News load nahi ho rahi.</p>";
     });
 </script>
 
 </body>
 </html>
+```
